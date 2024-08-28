@@ -14,5 +14,5 @@
 int main(void){
     printf("NAME: Ian McGillivary\n\n");
     printf("COLOR: Orange\n\n");
-    printf("QUEST: To learn the C language in the Unix environment\n\n");
+    printf("QUEST: To learn the C language in the Unix environment\n");
 }
