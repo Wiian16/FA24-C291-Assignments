@@ -24,10 +24,10 @@ int main(void){
     }
 
     if(index % 3 == 0){
-      printf("Fizz");
+      printf("fizz");
     }
     if(index % 5 == 0){
-      printf("Buzz");
+      printf("buzz");
     }
     if(index % 3 != 0 && index % 5 != 0){
       printf("%d", index);
