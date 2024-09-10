@@ -1,8 +1,12 @@
 #include <stdio.h>
 
 /*
- * This is a block comment
- * I don't want to do this
+ * This program will take in an input from stdin, which must be an integer.
+ * The program will then start a loop counting up from zero. When it 
+ * encounters a number divisible by 3, 'fizz' will be printed to stdout.
+ * When it encounters a number divisible by 5, it will print 'buzz'. When
+ * a number divisible by both 3 and 5, it will print 'fizzbuzz'. When none 
+ * of these conditions are met, only the number will be printed. 
  */
 int main(void){
   int input;
