@@ -4,10 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <execinfo.h> //todo: remove when done developing
-#include <signal.h>
-#include <unistd.h>
-
 #define MONTHS_PER_YEAR 12
 #define WEEKS_PER_MONTH 4
 #define HOURS_PER_WEEK 40
@@ -111,22 +107,6 @@ char * append(char * a, char * b){
     return str;
 }
 
-//int indexOf(char str[], char a){
-    //char *e = strchr(str, a)
-//}
-
-
-void handler(int sig){ //todo: remove when done developing
-    void *array[10];
-    size_t size;
-
-    size = backtrace(array, 10);
-
-    fprintf(stderr, "Error: signal %d\n", sig);
-    backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
-}
-
 /*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
@@ -138,8 +118,6 @@ void handler(int sig){ //todo: remove when done developing
  * data.
  */
 int main(void){
-    signal(SIGSEGV, handler); //todo: remove when done developing
-
     printf("program started\n");
 
     //Initialize regular expression and error out if failed
@@ -206,5 +184,3 @@ int main(void){
 
     printf("program finished\n");
 }
-
-
