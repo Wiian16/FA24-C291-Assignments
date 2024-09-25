@@ -1,6 +1,10 @@
 #!/bin/bash
 
-gcc -o salary.out salary.c
+if ./compile.sh; then
+    printf "\n"
+else
+    exit 1
+fi
 
 ./salary.out << EOF
 ?
