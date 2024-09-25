@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <execinfo.h> //todo: remove when done developing
+#include <signal.h>
+#include <unistd.h>
+
 #define MONTHS_PER_YEAR 12
 #define WEEKS_PER_MONTH 4
 #define HOURS_PER_WEEK 40
@@ -87,7 +91,8 @@ int getType(char input[]){
  * This function outputs a formatted string of the admin average salary when given the yearly salary
  */
 char * calcualteAdmin(float salary){ //todo: calculate avg salary
-    char * str;
+    printf("%f\n", salary);
+    char * str = (char *) malloc(60);
     sprintf(str, "%-18s%-17.2f", "Administrator", salary);
     return str;
 }
@@ -96,12 +101,30 @@ char * calcualteAdmin(float salary){ //todo: calculate avg salary
  * This method takes in two strings (char arrays), appends them together, and returns the new array
  */ 
 char * append(char * a, char * b){
-    int len = strlen(a) + strlen(b);
-    char * str = (char * ) malloc(len);
-    strcat(str, a);
+    int len = strlen(a) + strlen(b) + 1;
+
+    char * str = (char *) malloc(len);
+
+    strcpy(str, a);
     strcat(str, b);
 
     return str;
+}
+
+//int indexOf(char str[], char a){
+    //char *e = strchr(str, a)
+//}
+
+
+void handler(int sig){ //todo: remove when done developing
+    void *array[10];
+    size_t size;
+
+    size = backtrace(array, 10);
+
+    fprintf(stderr, "Error: signal %d\n", sig);
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
 }
 
 /*
@@ -115,6 +138,8 @@ char * append(char * a, char * b){
  * data.
  */
 int main(void){
+    signal(SIGSEGV, handler); //todo: remove when done developing
+
     printf("program started\n");
 
     //Initialize regular expression and error out if failed
@@ -150,8 +175,10 @@ int main(void){
         int type = getType(input);
 
         switch(type){
-            case ADMIN: //todo: extract values from input string
-                output = append(output, calcualteAdmin(1000));
+            case ADMIN:; //Semicolon stops error about declaration after labels
+                char * salaryStr = strchr(input, ' ') + 1; //Get a pointer to the salary value after the first space
+                float salary = atof(salaryStr); //Convert String to float
+                output = append(output, calcualteAdmin(salary));
                 break;
             case STAFF:
                 printf("Not implemented yet\n"); //todo
@@ -179,3 +206,5 @@ int main(void){
 
     printf("program finished\n");
 }
+
+

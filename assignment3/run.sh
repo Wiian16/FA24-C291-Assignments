@@ -1,5 +1,5 @@
 #!/usr/bin/bash
 
-gcc -o salary.out salary.c
+gcc -g -rdynamic -o salary.out salary.c
 
 ./salary.out
