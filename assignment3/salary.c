@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #define MONTHS_PER_YEAR 12
 #define WEEKS_PER_MONTH 4
@@ -84,16 +85,6 @@ int getType(char input[]){
 }
 
 /*
- * This function outputs a formatted string of the admin average salary when given the yearly salary
- */
-char * calcualteAdmin(float salary){ //todo: calculate avg salary
-    printf("%f\n", salary);
-    char * str = (char *) malloc(60);
-    sprintf(str, "%-18s%-17.2f", "Administrator", salary);
-    return str;
-}
-
-/*
  * This method takes in two strings (char arrays), appends them together, and returns the new array
  */ 
 char * append(char * a, char * b){
@@ -107,6 +98,31 @@ char * append(char * a, char * b){
     return str;
 }
 
+
+//int numParams(char input[]){
+//
+//}
+
+/*
+ * This function outputs a formatted string of the admin average salary when given the yearly salary
+ */
+char * calcualteAdmin(float salary){ 
+    char * str = (char *) malloc(60);
+    sprintf(str, "%-18s%-17.2f%-.2f", "Administrator", salary / MONTHS_PER_YEAR, salary / MONTHS_PER_YEAR);
+    return str;
+}
+
+
+char * calculateStaff(float salary, float overtimeHours){
+    char * str = (char *) malloc(60);
+
+    float avgSalary = salary / MONTHS_PER_YEAR;
+    float hourly = avgSalary / WEEKS_PER_MONTH / HOURS_PER_WEEK;
+    float overtimeHourly = hourly * 1.5;
+
+    sprintf(str, "%-18s%-17.2f%-.2f", "Staff", avgSalary, avgSalary + overtimeHourly * overtimeHours);
+    return str;
+}
 /*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
@@ -118,10 +134,8 @@ char * append(char * a, char * b){
  * data.
  */
 int main(void){
-    printf("program started\n");
-
     //Initialize regular expression and error out if failed
-    if(regcomp(&regex, "^[ASRJTH] ([0-9]+[\\.0-9]* ?){1,2}$", REG_EXTENDED) != 0){
+    if(regcomp(&regex, "^[ASRJTH] (([0-9]+[\\.0-9]* ?){1,2})$", REG_EXTENDED) != 0){
         printf("regular expression compilation failed");
         return 1;
     }
@@ -129,7 +143,7 @@ int main(void){
     char * output = "EMPLOYEE_TYPE     AVG_SALARY       AVG_PAY\n";
 
     while(true){
-        char input[5];
+        char input[50];
         printf("Enter employee salary: ");
         scanf(" %[^\n]", input);
         //break loop and print output
@@ -181,6 +195,4 @@ int main(void){
     }
 
     printf("%s\n", output);
-
-    printf("program finished\n");
 }
