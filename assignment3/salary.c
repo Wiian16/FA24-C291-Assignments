@@ -18,7 +18,8 @@
 
 const char usage[] = "Usage information: \n\
 Valid commands:\n\
-\t'q' -- print output and quit\n\
+\tq -- print output and quit\n\
+\t? -- print this help message\n\
 Input must begin with a valid employee character code, followed by one or two decimal numbers\n\
 Valid employee types:\n\
 \tA -- Administrator: Salary paid in equal portions each month\n\
@@ -154,8 +155,7 @@ int main(void){
         }
         //ensure input follows correct format, continue loop if it doesn't
         if(!validate(input)){
-            printf("Invalid input\n");
-            printUsage();
+            printf("Invalid input, enter '?' to see usage\n");
             memset(input, 0, sizeof(input));
             continue;
         }
@@ -170,7 +170,7 @@ int main(void){
         switch(type){
             case ADMIN: 
                 if(params != 2){
-                    printf("Invlid input, enter '?' to see usage\n");
+                    printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
 
@@ -178,7 +178,12 @@ int main(void){
 
                 break;
             case STAFF:
-                printf("Not implemented yet\n"); //todo
+                if(params != 3){
+                    printf("Invalid input, enter '?' to see usage\n");
+                }
+
+                output = append(output, calculateStaff(param1, param2));
+
                 break;
             case HOURLY:
                 printf("Not implemented yet\n"); //todo
@@ -193,7 +198,7 @@ int main(void){
                 printf("Not implemented yet\n"); //todo
                 break;
             default:
-                printUsage();
+                printf("Invalid input, enter '?' to see usage\n");
         }
 
         memset(input, 0, sizeof(input));
