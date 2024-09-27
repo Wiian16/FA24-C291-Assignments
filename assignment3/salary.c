@@ -104,7 +104,7 @@ char * append(char * a, char * b){
  */
 char * calculateAdmin(float salary){ 
     char * str = (char *) malloc(60);
-    sprintf(str, "%-18s%-17.2f%-.2f", "Administrator", salary / MONTHS_PER_YEAR, salary / MONTHS_PER_YEAR);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Administrator", salary / MONTHS_PER_YEAR, salary / MONTHS_PER_YEAR);
     return str;
 }
 
@@ -116,7 +116,7 @@ char * calculateStaff(float salary, float overtimeHours){
     float hourly = avgSalary / WEEKS_PER_MONTH / HOURS_PER_WEEK;
     float overtimeHourly = hourly * 1.5;
 
-    sprintf(str, "%-18s%-17.2f%-.2f", "Staff", avgSalary, avgSalary + overtimeHourly * overtimeHours);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Staff", avgSalary, avgSalary + overtimeHourly * overtimeHours);
     return str;
 }
 
