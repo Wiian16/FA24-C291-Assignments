@@ -1,0 +1,17 @@
+Valid commands:
+	q -- print output and quit
+	? -- print this help message
+Input must begin with a valid employee character code, followed by one or two decimal numbers
+Valid employee types:
+	A -- Administrator: Salary paid in equal portions each month
+		Input: Requires only yearly salary
+	S -- Staff: Salary paid monthly with optional overtime
+		Input: Requires yearly salary and overtime hours worked in the month
+	H -- Hourly: Paid by the hour with potential overtime
+		Input: Requires hourly pay rate and total hours worked in the month
+	J -- Adjunct Faculty: Paid per 3 credit hours taught over a 5-month period
+		Input: Requires number of credit hours being taught
+	R -- Regular Faculty: Paid yearly salary with potential overload credit pay
+		Input: Requires yearly salary and number of overload credit hours this semester
+	T -- Teaching Assistant: Paid per course with regular and overtime hours
+		Input: Requires number of courses assisted and total hours worked in the month
