@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
 
 #define MONTHS_PER_YEAR 12
 #define WEEKS_PER_MONTH 4
@@ -80,6 +79,9 @@ int getType(char typeChar){
     else if (typeChar == 'T'){
         return TA;
     }
+    else if (typeChar == 'H'){
+        return HOURLY;
+    }
     else{
         return -1;
     }
@@ -108,7 +110,10 @@ char * calculateAdmin(float salary){
     return str;
 }
 
-
+/*
+ * This function outputs a formatted string of the staff average salary and pay when given yearly salary and
+ * overtime hours
+ */
 char * calculateStaff(float salary, float overtimeHours){
     char * str = (char *) malloc(60);
 
@@ -117,6 +122,36 @@ char * calculateStaff(float salary, float overtimeHours){
     float overtimeHourly = hourly * 1.5;
 
     sprintf(str, "%-18s%-17.2f%-.2f\n", "Staff", avgSalary, avgSalary + overtimeHourly * overtimeHours);
+    return str;
+}
+
+
+char * calculateHourly(float payRate, float hoursWorked){
+    const int HOURS_PER_MONTH = HOURS_PER_WEEK / 2 * WEEKS_PER_MONTH; //20 hours per week for one month
+    const float OVERTIME_RATE = 1.25;
+
+    float regularHours, overtimeHours;
+
+    if(hoursWorked > HOURS_PER_MONTH){
+        regularHours = HOURS_PER_MONTH;
+        hoursWorked -= HOURS_PER_MONTH;
+    }
+    else{
+        regularHours = hoursWorked;
+        hoursWorked = 0;
+    }
+
+    if(hoursWorked > HOURS_PER_MONTH){
+        overtimeHours = HOURS_PER_MONTH;
+    }
+    else{
+        overtimeHours = hoursWorked;
+    }
+
+    char * str = (char *) malloc(60);
+    
+    float avgSalary = payRate * HOURS_PER_MONTH; 
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Hourly", avgSalary, avgSalary + payRate * OVERTIME_RATE * overtimeHours);
     return str;
 }
 
@@ -180,13 +215,20 @@ int main(void){
             case STAFF:
                 if(params != 3){
                     printf("Invalid input, enter '?' to see usage\n");
+                    continue;
                 }
 
                 output = append(output, calculateStaff(param1, param2));
 
                 break;
             case HOURLY:
-                printf("Not implemented yet\n"); //todo
+                if(params != 3){
+                    printf("Invalid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                output = append(output, calculateHourly(param1, param2));
+
                 break;
             case ADJUNCT:
                 printf("Not implemented yet\n"); //todo
