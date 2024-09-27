@@ -63,20 +63,20 @@ void printUsage(void){
  * This method takes in the user input after validation, and returns the type of employee based on the
  * character provided. If the character is invalid, -1 is returned. 
  */
-int getType(char input[]){
-    if (input[0] == 'A'){
+int getType(char typeChar){
+    if (typeChar == 'A'){
         return ADMIN;
     }
-    else if (input[0] == 'S'){
+    else if (typeChar == 'S'){
         return STAFF;
     }
-    else if (input[0] == 'J'){
+    else if (typeChar == 'J'){
         return ADJUNCT;
     }
-    else if (input[0] == 'R'){
+    else if (typeChar == 'R'){
         return REGULAR;
     }
-    else if (input[0] == 'T'){
+    else if (typeChar == 'T'){
         return TA;
     }
     else{
@@ -98,15 +98,10 @@ char * append(char * a, char * b){
     return str;
 }
 
-
-//int numParams(char input[]){
-//
-//}
-
 /*
  * This function outputs a formatted string of the admin average salary when given the yearly salary
  */
-char * calcualteAdmin(float salary){ 
+char * calculateAdmin(float salary){ 
     char * str = (char *) malloc(60);
     sprintf(str, "%-18s%-17.2f%-.2f", "Administrator", salary / MONTHS_PER_YEAR, salary / MONTHS_PER_YEAR);
     return str;
@@ -123,6 +118,7 @@ char * calculateStaff(float salary, float overtimeHours){
     sprintf(str, "%-18s%-17.2f%-.2f", "Staff", avgSalary, avgSalary + overtimeHourly * overtimeHours);
     return str;
 }
+
 /*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
@@ -164,13 +160,22 @@ int main(void){
             continue;
         }
 
-        int type = getType(input);
+        char typeChar;
+        float param1, param2;
+
+        int params = sscanf(input, "%c %f %f", &typeChar, &param1, &param2);
+
+        int type = getType(typeChar);
 
         switch(type){
-            case ADMIN:; //Semicolon stops error about declaration after labels
-                char * salaryStr = strchr(input, ' ') + 1; //Get a pointer to the salary value after the first space
-                float salary = atof(salaryStr); //Convert String to float
-                output = append(output, calcualteAdmin(salary));
+            case ADMIN: 
+                if(params != 2){
+                    printf("Invlid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                output = append(output, calculateAdmin(param1));
+
                 break;
             case STAFF:
                 printf("Not implemented yet\n"); //todo
