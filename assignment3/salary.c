@@ -168,7 +168,7 @@ char * calculateHourly(float payRate, float hoursWorked){
 int main(void){
     //Initialize regular expression and error out if failed
     if(regcomp(&regex, "^[ASRJTH] (([0-9]+[\\.0-9]* ?){1,2})$", REG_EXTENDED) != 0){
-        printf("regular expression compilation failed");
+        printf("regular expression compilation failed\n");
         return 1;
     }
 
@@ -218,12 +218,22 @@ int main(void){
                     continue;
                 }
 
+                if(param2 > 10){
+                    printf("Warning: staff member above allowed overtime hours, data discarded\n");
+                    continue;
+                }
+
                 output = append(output, calculateStaff(param1, param2));
 
                 break;
             case HOURLY:
                 if(params != 3){
                     printf("Invalid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                if(param2 > 20){
+                    printf("Warning: hourly employee over allowed time, data discarded\n");
                     continue;
                 }
 
