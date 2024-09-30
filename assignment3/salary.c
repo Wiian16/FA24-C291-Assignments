@@ -176,6 +176,23 @@ char * calculateAdjunct(float creditHours){
 }
 
 /*
+ * This function outputs a formatted string of regular faculty average salary and pay when given their annual salary
+ * and credit hour overload
+ */
+char * calculateRegular(float annualSalary, float creditOverload){
+    const float OVERLOAD_RATE = 8500.0 / 3;
+    const int OVERLOAD_MONTHS = 5;
+    const int SALARY_MONTHS = 10;
+
+    float avgSalary = annualSalary / SALARY_MONTHS;
+    float avgOverloadPay = creditOverload * OVERLOAD_RATE / OVERLOAD_MONTHS;
+
+    char * str = (char *) malloc(60);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Faculty", avgSalary, avgSalary + avgOverloadPay);
+    return str;
+}
+
+/*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
  * input, if this input is 'q', the loop will exit, if the input is '?', it will print instructions, and otherwise,
@@ -275,7 +292,13 @@ int main(void){
 
                 break;
             case REGULAR:
-                printf("Not implemented yet\n"); //todo
+                if(params != 3){
+                    printf("Invalid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                output = append(output, calculateRegular(param1, param2));                
+
                 break;
             case TA:
                 printf("Not implemented yet\n"); //todo
