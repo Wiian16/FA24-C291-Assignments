@@ -159,6 +159,20 @@ char * calculateHourly(float payRate, float hoursWorked){
     return str;
 }
 
+
+char * calculateAdjunct(float creditHours){
+    const int ADJUNCT_RATE = 8500;
+    const int ADJUNCT_MONTHS = 5;
+
+    int hours = (int) creditHours;
+
+    int avg_salary = (hours / 3) * ADJUNCT_RATE / ADJUNCT_MONTHS;
+
+    char * str = (char *) malloc(60);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Adjunct", (float) avg_salary, (float) avg_salary);
+    return str;
+}
+
 /*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
@@ -245,7 +259,18 @@ int main(void){
 
                 break;
             case ADJUNCT:
-                printf("Not implemented yet\n"); //todo
+                if(params != 2){
+                    printf("Invalid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                if(param1 > 9){
+                    printf("Warning: adjuncty faculty member over allowed credit hours, data discarded\n");
+                    continue;
+                }
+
+                output = append(output, calculateAdjunct(param1));
+
                 break;
             case REGULAR:
                 printf("Not implemented yet\n"); //todo
