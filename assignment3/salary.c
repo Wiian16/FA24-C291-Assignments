@@ -159,7 +159,9 @@ char * calculateHourly(float payRate, float hoursWorked){
     return str;
 }
 
-
+/*
+ * This function outputs a formatted string of the adjunct average salary and pay when given their credit houts taught.
+ */
 char * calculateAdjunct(float creditHours){
     const int ADJUNCT_RATE = 8500;
     const int ADJUNCT_MONTHS = 5;
