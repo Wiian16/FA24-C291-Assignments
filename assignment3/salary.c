@@ -192,6 +192,11 @@ char * calculateRegular(float annualSalary, float creditOverload){
     return str;
 }
 
+
+char * calculateTA(float courses, float hours){ //todo
+    return NULL;
+}
+
 /*
  * This function runs on program start, it first initializes a regular expression for validation of user input.
  * Second, the program will enter a loop until the user quits the program. During this loop, it will wait for user
