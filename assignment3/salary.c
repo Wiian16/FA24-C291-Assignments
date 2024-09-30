@@ -163,15 +163,15 @@ char * calculateHourly(float payRate, float hoursWorked){
  * This function outputs a formatted string of the adjunct average salary and pay when given their credit houts taught.
  */
 char * calculateAdjunct(float creditHours){
-    const int ADJUNCT_RATE = 8500;
+    const float ADJUNCT_RATE = 8500.0 / 3;
     const int ADJUNCT_MONTHS = 5;
 
     int hours = (int) creditHours;
 
-    int avg_salary = (hours / 3) * ADJUNCT_RATE / ADJUNCT_MONTHS;
+    float avg_salary = hours * ADJUNCT_RATE / ADJUNCT_MONTHS;
 
     char * str = (char *) malloc(60);
-    sprintf(str, "%-18s%-17.2f%-.2f\n", "Adjunct", (float) avg_salary, (float) avg_salary);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "Adjunct", (float) avg_salary, avg_salary);
     return str;
 }
 
