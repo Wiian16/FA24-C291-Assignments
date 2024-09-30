@@ -125,7 +125,11 @@ char * calculateStaff(float salary, float overtimeHours){
     return str;
 }
 
-
+/*
+ * This function outputs a formatted string of the hourly average salary and pay when given an hourly pay rate
+ * and hours worked. Hourly workers are paid at their base rate for the first 20 hours, then 1.25 times their 
+ * rate for the next 20.
+ */
 char * calculateHourly(float payRate, float hoursWorked){
     const int HOURS_PER_MONTH = HOURS_PER_WEEK / 2 * WEEKS_PER_MONTH; //20 hours per week for one month
     const float OVERTIME_RATE = 1.25;
