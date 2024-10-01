@@ -194,7 +194,30 @@ char * calculateRegular(float annualSalary, float creditOverload){
 
 
 char * calculateTA(float courses, float hours){ //todo
-    return NULL;
+    const int REGULAR_HOURS = 10;
+    const int OVERTIME_HOURS = 2;
+    const int MONTHS = 5;
+    const float HOURLY_RATE = 2500.0 / MONTHS / WEEKS_PER_MONTH / 10;
+    
+    int expectedHours = REGULAR_HOURS * WEEKS_PER_MONTH * MONTHS * courses;
+
+    float avgSalary, overtimePay;
+
+    if(hours > expectedHours){
+        avgSalary = expectedHours * HOURLY_RATE;
+    }
+
+    hours -= expectedHours;
+
+    if(hours < 0){
+        hours = 0;
+    }
+
+    overtimePay = hours * HOURLY_RATE;
+
+    char * str = (char *) malloc(60);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "TA", avgSalary, avgSalary + overtimePay);
+    return str;
 }
 
 /*
@@ -306,7 +329,20 @@ int main(void){
 
                 break;
             case TA:
-                printf("Not implemented yet\n"); //todo
+                if(params != 3){
+                    printf("Invalid input, enter '?' to see usage\n");
+                    continue;
+                }
+
+                int maxHours = param1 * 12 * WEEKS_PER_MONTH * 5;
+
+                if(param2 > maxHours){
+                    printf("Warning: teaching assistant over allowed hours, data discarded\n");
+                    continue;
+                }
+
+                output = append(output, calculateTA(param1, param2));
+
                 break;
             default:
                 printf("Invalid input, enter '?' to see usage\n");
