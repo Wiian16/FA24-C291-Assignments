@@ -34,24 +34,6 @@ Valid employee types:\n\
 \tT -- Teaching Assistant: Paid per course with regular and overtime hours\n\
 \t\tInput: Requires number of courses assisted and total hours worked in the month\n";
 
-
-regex_t regex;
-
-/*
- * This function takes an input string and returns true if the string contains a valid
- * employee type as the first character and one or two decimal numbers, false otherwise
- */
-bool validate(char input[]){
-    return regexec(&regex, input, 0, NULL, 0) == 0;
-}
-
-/*
- * This function returns true if strigns a and b are equal, false otehrwise
- */
-bool equals(char a[], char b[]){
-    return strcmp(a, b) == 0;
-}
-
 /*
  * This function prints usage instructions to stdout
  */
@@ -224,45 +206,36 @@ char * calculateTA(float courses, float hours){ //todo
  * data.
  */
 int main(void){
-    //Initialize regular expression and error out if failed
-    if(regcomp(&regex, "^[ASRJTH] (([0-9]+[\\.0-9]* ?){1,2})$", REG_EXTENDED) != 0){
-        printf("regular expression compilation failed\n");
-        return 1;
-    }
-
     char * output = "EMPLOYEE_TYPE     AVG_SALARY       AVG_PAY\n";
 
     while(true){
-        char input[50];
-        printf("Enter employee salary: ");
-        scanf(" %[^\n]", input);
+        char type;
+
+        printf("Enter employee salary:\n");
+        scanf(" %c ", &type);
+        printf("type=%c\n", type);
         //break loop and print output
-        if(equals(input, "q") || equals(input, "Q")){
+        if(type == 'q' || type == 'Q'){
             break;
         }
         //print instructions and continue
-        if(equals(input, "?")){
+        if(type == '?'){
             printUsage();
-            memset(input, 0, sizeof(input)); // Clear the input
-            continue;
-        }
-        //ensure input follows correct format, continue loop if it doesn't
-        if(!validate(input)){
-            printf("Invalid input, enter '?' to see usage\n");
-            memset(input, 0, sizeof(input));
             continue;
         }
 
-        char typeChar;
-        float param1, param2;
+        int typeCode = getType(type);
 
-        int params = sscanf(input, "%c %f %f", &typeChar, &param1, &param2);
+        double param1 = 0;
+        double param2 = 0;
+        int params = 0;
 
-        int type = getType(typeChar);
-
-        switch(type){
+        switch(typeCode){
             case ADMIN: 
-                if(params != 2){
+                params = scanf(" %lf ", &param1);
+                printf("param1=%f\n", param1);
+    
+                if(params != 1){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -271,7 +244,9 @@ int main(void){
 
                 break;
             case STAFF:
-                if(params != 3){
+                params = scanf(" %lf %lf ", &param1, &param2);
+
+                if(params != 2){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -285,7 +260,9 @@ int main(void){
 
                 break;
             case HOURLY:
-                if(params != 3){
+                params = scanf(" %lf %lf", &param1, &param2);
+
+                if(params != 2){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -299,7 +276,9 @@ int main(void){
 
                 break;
             case ADJUNCT:
-                if(params != 2){
+                params = scanf(" %lf ", &param1);
+
+                if(params != 1){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -313,7 +292,9 @@ int main(void){
 
                 break;
             case REGULAR:
-                if(params != 3){
+                params = scanf(" %lf %lf ", &param1, &param2);
+
+                if(params != 2){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -322,7 +303,9 @@ int main(void){
 
                 break;
             case TA:
-                if(params != 3){
+                params = scanf(" %lf %lf ", &param1, &param2);
+
+                if(params != 2){
                     printf("Invalid input, enter '?' to see usage\n");
                     continue;
                 }
@@ -340,8 +323,6 @@ int main(void){
             default:
                 printf("Invalid input, enter '?' to see usage\n");
         }
-
-        memset(input, 0, sizeof(input));
     }
 
     printf("%s\n", output);

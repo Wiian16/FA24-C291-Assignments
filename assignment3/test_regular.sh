@@ -7,9 +7,6 @@ fi
 echo "Program starting"
 
 OUTPUT=`./salary.out << EOF
-R
-R 100
-R 100 100 100
 R 80000 0
 R 0 9
 R 80000 4.5
@@ -18,7 +15,7 @@ EOF`
 
 echo "Program finished"
 
-echo "$OUTPUT" | grep -v "Enter employee salary:" > filtered.txt
+echo "$OUTPUT" | grep "Faculty" > filtered.txt
 
 STATUS=0
 

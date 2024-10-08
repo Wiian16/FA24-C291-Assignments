@@ -26,7 +26,7 @@ else
     echo "Test failed"
     echo "Expected output:"
     cat expected_help_output.txt
-    echo "Expected output:"
+    echo "Actual output:"
     cat filtered.txt
 fi
 
