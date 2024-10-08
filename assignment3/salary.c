@@ -197,26 +197,19 @@ char * calculateTA(float courses, float hours){ //todo
     const int REGULAR_HOURS = 10;
     const int OVERTIME_HOURS = 2;
     const int MONTHS = 5;
-    const float HOURLY_RATE = 2500.0 / MONTHS / WEEKS_PER_MONTH / 10;
+    const float MONTHLY_RATE = 2500.0 / MONTHS;
+    const float HOURLY_RATE = MONTHLY_RATE / WEEKS_PER_MONTH / 10;
     
-    int expectedHours = REGULAR_HOURS * WEEKS_PER_MONTH * MONTHS * courses;
-
-    float avgSalary, overtimePay;
-
-    if(hours > expectedHours){
-        avgSalary = expectedHours * HOURLY_RATE;
+    int maxHours = REGULAR_HOURS * WEEKS_PER_MONTH * courses + OVERTIME_HOURS * WEEKS_PER_MONTH * courses;
+    
+    if(hours > maxHours){
+        hours = maxHours;
     }
 
-    hours -= expectedHours;
-
-    if(hours < 0){
-        hours = 0;
-    }
-
-    overtimePay = hours * HOURLY_RATE;
+    float pay = hours * HOURLY_RATE;
 
     char * str = (char *) malloc(60);
-    sprintf(str, "%-18s%-17.2f%-.2f\n", "TA", avgSalary, avgSalary + overtimePay);
+    sprintf(str, "%-18s%-17.2f%-.2f\n", "TA", pay, pay);
     return str;
 }
 
@@ -244,7 +237,7 @@ int main(void){
         printf("Enter employee salary: ");
         scanf(" %[^\n]", input);
         //break loop and print output
-        if(equals(input, "q")){
+        if(equals(input, "q") || equals(input, "Q")){
             break;
         }
         //print instructions and continue
