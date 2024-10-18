@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if gcc -g -fno-stack-protector -rdynamic -o payroll.out payroll.c; then
+if gcc -g -lm -fno-stack-protector -rdynamic -o payroll.out payroll.c; then
     echo "Compilation successful"
 else
     echo "Compilation failed"
