@@ -10,8 +10,42 @@ characters and the null byte (\0) is not defined as a whitesace character.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+
+void getBuffer(char *);
 
 
 int main(void){
-        
+    char * buffer = calloc(2048, sizeof(char));
+
+    getBuffer(buffer);
+
+    printf("Buffer = %s\n", buffer);
 }
+
+/*
+This function will fill a given buffer array with characters until it is full or EOF is reached
+
+Arguments:
+    char * buffer: Character array to fill from stdin
+
+Returns:
+    char *: buffer array filled from stdin
+*/
+void getBuffer(char * buffer){
+    printf("Input characters into the buffer:\n");
+
+    int maxLength = *(&buffer + 1) - buffer;
+
+    int i = 0;
+    while (!feof(stdin)){
+        if(i == maxLength){
+            break;
+        }
+
+        fread(buffer + index, sizeof(char), 1);
+    }
+
+    printf("Done filling\n");
+} 
