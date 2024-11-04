@@ -9,19 +9,34 @@ total unique words, and total words found. For this program a word is defined as
 characters and the null byte (\0) is not defined as a whitesace character.
 */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+
+#define BUFFER_SIZE 2048
 
 
 void getBuffer(char *);
+int indexBuffer(char *, char ***, int);
+int indexOf(char ***, char *, int);
 
 
 int main(void){
-    char * buffer = calloc(2048, sizeof(char));
+    char * buffer = calloc(BUFFER_SIZE, sizeof(char));
 
     getBuffer(buffer);
 
     printf("Buffer = %s\n", buffer);
+    
+    char *** indexArr = malloc(8 * sizeof(char **));
+    
+    for(int i = 0; i < 8; i++){
+        indexArr[i] = malloc(4 * sizeof(char *));
+    }
+
+    indexBuffer(buffer, indexArr, 8);
 }
 
 /*
@@ -36,16 +51,59 @@ Returns:
 void getBuffer(char * buffer){
     printf("Input characters into the buffer:\n");
 
-    int maxLength = *(&buffer + 1) - buffer;
-
     int i = 0;
-    while (!feof(stdin)){
-        if(i == maxLength){
+    while (!feof(stdin) && i <= BUFFER_SIZE){
+        if(!fread(buffer + i, sizeof(char), 1, stdin)){
             break;
         }
 
-        fread(buffer + index, sizeof(char), 1);
+        i++;
     }
 
-    printf("Done filling\n");
+    printf("\nDone filling\n");
+    printf("Buffer Length = %d\n", i);
 } 
+
+/*
+This function, when given a buffer array, index array, and in index array size, will find all words in the bufer and
+add it to the index array. If the index array is full, it will allocate more size. The function will return the actual
+size of the index array.
+Arguments:
+    char * buffer: filled character buffer from stdin
+    char ** indexArr: initialized index array for buffer
+    int indexArrSize: Index array starting size
+Returns:
+    int: Final size of index array
+*/
+int indexBuffer(char * buffer, char *** indexArr, int indexArrSize){
+    int size = 0;
+    char * word = "";
+
+    for(int i = 0; i < BUFFER_SIZE; i++){
+        if(isspace(buffer[i])){
+            if(strlen(word) == 0){
+                continue;
+            }
+
+            int index = indexOf(indexArr, word, size);
+            if(index != -1){
+
+            }
+
+            //add element, check size
+        }
+    }
+
+    return size;
+}
+
+
+int indexOf(char *** indexArr, char * word, int size){
+    for(int i = 0; i < size; i++){
+        if(strcmp(indexArr[i][3], word) == 0){
+            return i;
+        }
+    }
+
+    return -1;
+}
