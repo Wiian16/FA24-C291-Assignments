@@ -19,7 +19,7 @@ characters and the null byte (\0) is not defined as a whitesace character.
 
 
 void getBuffer(char *);
-int indexBuffer(char *, char ***, int);
+char *** indexBuffer(char *, char ***, int);
 int indexOf(char ***, char *, int);
 
 
@@ -31,12 +31,9 @@ int main(void){
     printf("Buffer = %s\n", buffer);
     
     char *** indexArr = malloc(8 * sizeof(char **));
-    
     for(int i = 0; i < 8; i++){
         indexArr[i] = malloc(4 * sizeof(char *));
     }
-
-    indexBuffer(buffer, indexArr, 8);
 }
 
 /*
@@ -48,6 +45,7 @@ Arguments:
 Returns:
     char *: buffer array filled from stdin
 */
+// POINTER ARITHMETIC
 void getBuffer(char * buffer){
     printf("Input characters into the buffer:\n");
 
@@ -65,19 +63,18 @@ void getBuffer(char * buffer){
 } 
 
 /*
-This function, when given a buffer array, index array, and in index array size, will find all words in the bufer and
-add it to the index array. If the index array is full, it will allocate more size. The function will return the actual
-size of the index array.
+This function, when given a buffer array, index array, and an index size will parse the buffer for words seperated by
+whitespace. Unique words found will be stored in the index array along with their being index, length, and count. The 
+new array will be returned, as it may be at a different address. 
 Arguments:
-    char * buffer: filled character buffer from stdin
-    char ** indexArr: initialized index array for buffer
-    int indexArrSize: Index array starting size
-Returns:
-    int: Final size of index array
+    char * buffer: filled buffer to index
+    char *** indexArr: Initialized index of buffer
+    int indexSize: starting size of indexArr
 */
-int indexBuffer(char * buffer, char *** indexArr, int indexArrSize){
-    int size = 0;
-    char * word = "";
+char *** indexBuffer(char * buffer, char *** indexArr, int indexSize){
+    int filledSize = 0;
+    char * word = malloc(2048 * sizeof(char));
+    word[0] = '\0';
 
     for(int i = 0; i < BUFFER_SIZE; i++){
         if(isspace(buffer[i])){
@@ -85,25 +82,32 @@ int indexBuffer(char * buffer, char *** indexArr, int indexArrSize){
                 continue;
             }
 
-            int index = indexOf(indexArr, word, size);
+            int index = indexOf(indexArr, word, filledSize);
             if(index != -1){
+                //word already found, update count
+                int count = atoi(indexArr[i][2]) + 1;
+                sprintf(indexArr[i][2], "%d", count);
+            }
+            else{
 
             }
-
-            //add element, check size
         }
     }
 
-    return size;
+    return indexArr;
 }
 
-
-int indexOf(char *** indexArr, char * word, int size){
+/*
+When given an array of strings, a string to search for, and a size, this function will return the index of the given
+string if it is in the array and -1 if the string is not found.
+*/
+int indexOf(char *** wordsArr, char * word, int size){
     for(int i = 0; i < size; i++){
-        if(strcmp(indexArr[i][3], word) == 0){
+        if(strcmp(wordsArr[i][3], word) == 0){
             return i;
         }
     }
 
     return -1;
 }
+
