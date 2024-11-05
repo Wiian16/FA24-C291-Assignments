@@ -9,23 +9,32 @@ total unique words, and total words found. For this program a word is defined as
 characters and the null byte (\0) is not defined as a whitesace character.
 */
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 #define BUFFER_SIZE 2048
 
 
+struct UniqueWord{
+    char * word;
+    int begin;
+    int count;
+};
+
+struct Word{
+    char * word;
+    int begin;
+};
+
+
 void getBuffer(char *);
-size_t findAllWords(char *, char **);
-int countUniqueWords(char **, size_t);
-int indexOf(char **, char *, size_t);
-void fillUniqueWords(char **, char **, size_t);
-int count(char **, char *, size_t);
-int indexOfBuffer(char *, char *);
-void printReport(char *, char **, char **, size_t, size_t);
+size_t findAllWords(char *, struct Word *);
+size_t findAllUniqueWords(struct Word *, struct UniqueWord *, size_t);
+int indexOfUniqueWord(struct UniqueWord *, char * word, size_t);
+void printReport(struct UniqueWord *, size_t, char *, size_t);
 
 
 int main(void){
@@ -33,22 +42,15 @@ int main(void){
 
     getBuffer(buffer);
 
-    char *** indexArr = malloc(8 * sizeof(char **));
-    for(int i = 0; i < 8; i++){
-        indexArr[i] = malloc(4 * sizeof(char *));
-    }
+    struct Word * wordList = malloc(1024 * sizeof(struct Word));
 
-    char ** wordsArr = malloc(1024 * sizeof(char *));
+    size_t wordListSize = findAllWords(buffer, wordList);
 
-    size_t wordsSize = findAllWords(buffer, wordsArr);
-
-    int uniqueCount = countUniqueWords(wordsArr, wordsSize);
-
+    struct UniqueWord * uniqueWordList = malloc(1024 * sizeof(struct UniqueWord));
     
-    char ** uniqueWordsArr = malloc(uniqueCount * sizeof(char *));
-    fillUniqueWords(wordsArr, uniqueWordsArr, wordsSize);
-    
-    printReport(buffer, uniqueWordsArr, wordsArr, uniqueCount, wordsSize);
+    size_t uniqueWordListSize = findAllUniqueWords(wordList, uniqueWordList, wordListSize);
+
+    printReport(uniqueWordList, uniqueWordListSize, buffer, wordListSize);
 }
 
 /*
@@ -70,28 +72,32 @@ void getBuffer(char * buffer){
             break;
         }
 
+        if(buffer[i] == '\0'){
+            buffer[i] = ' ';
+        }
+
         i++;
     }
 } 
 
-/*
-This function will find all the words in buffer and return them in an array
-   */
-size_t findAllWords(char * buffer, char ** wordsArr){
+//Fills wordList with all words found in buffer and returns the filled size of wordList
+size_t findAllWords(char * buffer, struct Word * wordList){
     size_t size = 0;
-    char * word = malloc(2048 * sizeof(char));
+    char * word = malloc(BUFFER_SIZE * sizeof(char));
     word[0] = '\0';
 
-    for(int i = 0; i < BUFFER_SIZE; i++){
+    int i;
+    for(i = 0; i < BUFFER_SIZE; i++){
         if(isspace(buffer[i])){
             if(strlen(word) != 0){
-                wordsArr[size] = malloc(strlen(word) * sizeof(char));
-                strcpy(wordsArr[size], word);
+                wordList[size].word = malloc(strlen(word) * sizeof(char));
+                strcpy(wordList[size].word, word);
+                wordList[size].begin = i - strlen(word);
 
-                size++; 
+                size++;
 
                 word[0] = '\0';
-            } 
+            }
         }
         else{
             size_t len = strlen(word);
@@ -101,92 +107,56 @@ size_t findAllWords(char * buffer, char ** wordsArr){
     }
 
     if(strlen(word) != 0){
-        wordsArr[size] = malloc(sizeof(word));
-        strcpy(wordsArr[size], word);
+        wordList[size].word = malloc(strlen(word) * sizeof(char));
+        strcpy(wordList[size].word, word);
+        wordList[size].begin = i - strlen(word);
         size++;
     }
 
     return size;
 }
 
-/*
-Returns the number of unique words in the given words array
-   */
-int countUniqueWords(char ** wordsArr, size_t size){
-    int uniqueCount = 0;
-
-    char ** uniqueArr = malloc(size * sizeof(char *));
+//Fills uniqueWordList with all unique words from wordList and returns the filled size of uniqueWordList
+size_t findAllUniqueWords(struct Word * wordList, struct UniqueWord * uniqueWordList, size_t size){
+    int uniqueSize = 0;
 
     for(int i = 0; i < size; i++){
-        if(indexOf(uniqueArr, wordsArr[i], uniqueCount) == -1){
-            uniqueArr[uniqueCount] = malloc(strlen(wordsArr[i] + 1) * sizeof(char));
-            strcpy(uniqueArr[uniqueCount], wordsArr[i]);
-            uniqueCount++;
+        int index = indexOfUniqueWord(uniqueWordList, wordList[i].word, uniqueSize);
+        if(index == -1){
+            uniqueWordList[uniqueSize].word = malloc(strlen(wordList[i].word) * sizeof(char *));
+            strcpy(uniqueWordList[uniqueSize].word, wordList[i].word);
+            uniqueWordList[uniqueSize].begin = wordList[i].begin;
+            uniqueWordList[uniqueSize].count = 1;
+            uniqueSize++;
+        }
+        else{
+            uniqueWordList[index].count++;
         }
     }
 
-    return uniqueCount;
+    return uniqueSize;
 }
 
-/*
-This function returns the index of a given item in the given array, returns -1 if the item is not found.
-   */
-int indexOf(char ** arr, char * word, size_t size){
+//Returns the index of the given word
+int indexOfUniqueWord(struct UniqueWord * uniqueWordList, char * word, size_t size){
     for(int i = 0; i < size; i++){
-        if(strcmp(arr[i], word) == 0){
+        if(strcmp(uniqueWordList[i].word, word) == 0){
             return i;
         }
     }
-
-    return -1;
-}
-
-/*
-This function will fill the uniqueWordsArr with the unique words from wordsArr
-   */
-void fillUniqueWords(char ** wordsArr, char ** uniqueWordsArr, size_t size){
-    int uniqueCount = 0;
-
-    for(int i = 0; i < size; i++){
-        if(indexOf(uniqueWordsArr, wordsArr[i], uniqueCount) == -1){
-            uniqueWordsArr[uniqueCount] = malloc(strlen(wordsArr[i] + 1) * sizeof(char));
-            strcpy(uniqueWordsArr[uniqueCount], wordsArr[i]);
-            uniqueCount++;
-        }
-    }
-}
-
-//This function will return the number of times the given word appears in the array
-int count(char ** wordsArr, char * word, size_t size){
-    int count = 0;
-
-    for(int i = 0; i < size; i++){
-        if(strcmp(wordsArr[i], word) == 0){
-            count++;
-        }
-    }
-
-    return count;
-}
-
-//This function will return the index of the first occurance of word in buffer
-int indexOfBuffer(char * buffer, char * word){
-    char * found = strstr(buffer, word);
-
-    if(found != NULL){
-        return found - buffer;
-    }
-
     return -1;
 }
 
 
-void printReport(char * buffer, char ** uniqueWords, char ** wordsArr, size_t uniqueSize, size_t wordsSize){
+void printReport(struct UniqueWord * uniqueWordList, size_t size, char * buffer, size_t wordListSize){
     printf("%-10s%-10s%-10s%-s\n", "BEGIN", "LENGTH", "COUNT", "WORD");
 
-    for(int i = 0; i < uniqueSize; i++){
-        char * word = uniqueWords[i];
-        printf("%-10d%-10d%-10d%-s\n", indexOfBuffer(buffer, word), (int) strlen(word), count(wordsArr, word, wordsSize), 
-                word);
+    for(int i = 0; i < size; i++){
+        printf("%-10d%-10d%-10d%-s\n", uniqueWordList[i].begin, (int) strlen(uniqueWordList[i].word), uniqueWordList[i].count,
+                uniqueWordList[i].word);
     }
+
+    printf("Total processed bytes: %lu\n", strlen(buffer));
+    printf("Total Unique Words: %lu\n", size);
+    printf("Total words found: %lu\n", wordListSize);
 }
