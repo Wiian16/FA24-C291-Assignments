@@ -19,12 +19,14 @@ characters and the null byte (\0) is not defined as a whitesace character.
 
 
 void getBuffer(char *);
-char *** indexBuffer(char *, char ***, int);
-int indexOf(char ***, char *, int);
+size_t findAllWords(char *, char **);
+int countUniqueWords(char **, size_t);
+int indexOf(char **, char *, size_t);
+void fillUniqueWords(char **, char **, size_t);
 
 
 int main(void){
-    char * buffer = calloc(BUFFER_SIZE, sizeof(char));
+    char * buffer = calloc(BUFFER_SIZE + 1, sizeof(char));
 
     getBuffer(buffer);
 
@@ -34,6 +36,30 @@ int main(void){
     for(int i = 0; i < 8; i++){
         indexArr[i] = malloc(4 * sizeof(char *));
     }
+
+    char ** wordsArr = malloc(1024 * sizeof(char *));
+
+    size_t wordsSize = findAllWords(buffer, wordsArr);
+    printf("words = %lu\n", wordsSize);
+    
+    for(int i = 0; i < wordsSize; i++){
+        printf("%s, ", wordsArr[i]);
+    }
+
+    printf("\n");
+
+    int uniqueCount = countUniqueWords(wordsArr, wordsSize);
+
+    printf("Unique words = %d\n", uniqueCount);
+    
+    char ** uniqueWordsArr = malloc(uniqueCount * sizeof(char *));
+    fillUniqueWords(wordsArr, uniqueWordsArr, wordsSize);
+    
+    for(int i = 0; i < uniqueCount; i++){
+        printf("%s, ", uniqueWordsArr[i]);
+    }
+
+    printf("\n");
 }
 
 /*
@@ -50,7 +76,7 @@ void getBuffer(char * buffer){
     printf("Input characters into the buffer:\n");
 
     int i = 0;
-    while (!feof(stdin) && i <= BUFFER_SIZE){
+    while (!feof(stdin) && i < BUFFER_SIZE){
         if(!fread(buffer + i, sizeof(char), 1, stdin)){
             break;
         }
@@ -63,47 +89,65 @@ void getBuffer(char * buffer){
 } 
 
 /*
-This function, when given a buffer array, index array, and an index size will parse the buffer for words seperated by
-whitespace. Unique words found will be stored in the index array along with their being index, length, and count. The 
-new array will be returned, as it may be at a different address. 
-Arguments:
-    char * buffer: filled buffer to index
-    char *** indexArr: Initialized index of buffer
-    int indexSize: starting size of indexArr
-*/
-char *** indexBuffer(char * buffer, char *** indexArr, int indexSize){
-    int filledSize = 0;
+This function will find all the words in buffer and return them in an array
+   */
+size_t findAllWords(char * buffer, char ** wordsArr){
+    size_t size = 0;
     char * word = malloc(2048 * sizeof(char));
     word[0] = '\0';
 
     for(int i = 0; i < BUFFER_SIZE; i++){
         if(isspace(buffer[i])){
-            if(strlen(word) == 0){
-                continue;
-            }
+            if(strlen(word) != 0){
+                wordsArr[size] = malloc(strlen(word) * sizeof(char));
+                strcpy(wordsArr[size], word);
 
-            int index = indexOf(indexArr, word, filledSize);
-            if(index != -1){
-                //word already found, update count
-                int count = atoi(indexArr[i][2]) + 1;
-                sprintf(indexArr[i][2], "%d", count);
-            }
-            else{
+                size++; 
 
-            }
+                word[0] = '\0';
+            } 
+        }
+        else{
+            size_t len = strlen(word);
+            word[len] = buffer[i];
+            word[len + 1] = '\0';
         }
     }
 
-    return indexArr;
+    if(strlen(word) != 0){
+        wordsArr[size] = malloc(sizeof(word));
+        strcpy(wordsArr[size], word);
+        size++;
+    }
+
+    return size;
 }
 
 /*
-When given an array of strings, a string to search for, and a size, this function will return the index of the given
-string if it is in the array and -1 if the string is not found.
-*/
-int indexOf(char *** wordsArr, char * word, int size){
+Returns the number of unique words in the given words array
+   */
+int countUniqueWords(char ** wordsArr, size_t size){
+    int uniqueCount = 0;
+
+    char ** uniqueArr = malloc(size * sizeof(char *));
+
     for(int i = 0; i < size; i++){
-        if(strcmp(wordsArr[i][3], word) == 0){
+        if(indexOf(uniqueArr, wordsArr[i], uniqueCount) == -1){
+            uniqueArr[uniqueCount] = malloc(strlen(wordsArr[i] + 1) * sizeof(char));
+            strcpy(uniqueArr[uniqueCount], wordsArr[i]);
+            uniqueCount++;
+        }
+    }
+
+    return uniqueCount;
+}
+
+/*
+This function returns the index of a given item in the given array, returns -1 if the item is not found.
+   */
+int indexOf(char ** arr, char * word, size_t size){
+    for(int i = 0; i < size; i++){
+        if(strcmp(arr[i], word) == 0){
             return i;
         }
     }
@@ -111,3 +155,17 @@ int indexOf(char *** wordsArr, char * word, int size){
     return -1;
 }
 
+/*
+This function will fill the uniqueWordsArr with the unique words from wordsArr
+   */
+void fillUniqueWords(char ** wordsArr, char ** uniqueWordsArr, size_t size){
+    int uniqueCount = 0;
+
+    for(int i = 0; i < size; i++){
+        if(indexOf(uniqueWordsArr, wordsArr[i], uniqueCount) == -1){
+            uniqueWordsArr[uniqueCount] = malloc(strlen(wordsArr[i] + 1) * sizeof(char));
+            strcpy(uniqueWordsArr[uniqueCount], wordsArr[i]);
+            uniqueCount++;
+        }
+    }
+}
