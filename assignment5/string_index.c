@@ -30,17 +30,18 @@ struct Word{
 };
 
 
-void getBuffer(char *);
+int getBuffer(char *);
 size_t findAllWords(char *, struct Word *);
 size_t findAllUniqueWords(struct Word *, struct UniqueWord *, size_t);
 int indexOfUniqueWord(struct UniqueWord *, char * word, size_t);
-void printReport(struct UniqueWord *, size_t, char *, size_t);
+void printReport(struct UniqueWord *, size_t, char *, size_t, size_t);
+void printString(char *);
 
 
 int main(void){
     char * buffer = calloc(BUFFER_SIZE + 1, sizeof(char));
 
-    getBuffer(buffer);
+    size_t bufferSize = getBuffer(buffer);
 
     struct Word * wordList = malloc(1024 * sizeof(struct Word));
 
@@ -50,7 +51,7 @@ int main(void){
     
     size_t uniqueWordListSize = findAllUniqueWords(wordList, uniqueWordList, wordListSize);
 
-    printReport(uniqueWordList, uniqueWordListSize, buffer, wordListSize);
+    printReport(uniqueWordList, uniqueWordListSize, buffer, wordListSize, bufferSize);;
 }
 
 /*
@@ -63,9 +64,7 @@ Returns:
     char *: buffer array filled from stdin
 */
 // POINTER ARITHMETIC
-void getBuffer(char * buffer){
-    printf("Input characters into the buffer:\n");
-
+int getBuffer(char * buffer){
     int i = 0;
     while (!feof(stdin) && i < BUFFER_SIZE){
         if(!fread(buffer + i, sizeof(char), 1, stdin)){
@@ -73,11 +72,13 @@ void getBuffer(char * buffer){
         }
 
         if(buffer[i] == '\0'){
-            buffer[i] = ' ';
+           buffer[i] = 27;
         }
 
         i++;
     }
+
+    return i;
 } 
 
 //Fills wordList with all words found in buffer and returns the filled size of wordList
@@ -85,6 +86,7 @@ size_t findAllWords(char * buffer, struct Word * wordList){
     size_t size = 0;
     char * word = malloc(BUFFER_SIZE * sizeof(char));
     word[0] = '\0';
+    int begin = -1;
 
     int i;
     for(i = 0; i < BUFFER_SIZE; i++){
@@ -92,24 +94,29 @@ size_t findAllWords(char * buffer, struct Word * wordList){
             if(strlen(word) != 0){
                 wordList[size].word = malloc(strlen(word) * sizeof(char));
                 strcpy(wordList[size].word, word);
-                wordList[size].begin = i - strlen(word);
+                wordList[size].begin = begin;
 
                 size++;
 
                 word[0] = '\0';
+                begin = -1;
             }
         }
         else{
             size_t len = strlen(word);
             word[len] = buffer[i];
             word[len + 1] = '\0';
+
+            if(begin == -1){
+                begin = i;
+            }
         }
     }
 
     if(strlen(word) != 0){
         wordList[size].word = malloc(strlen(word) * sizeof(char));
         strcpy(wordList[size].word, word);
-        wordList[size].begin = i - strlen(word);
+        wordList[size].begin = begin;
         size++;
     }
 
@@ -148,15 +155,33 @@ int indexOfUniqueWord(struct UniqueWord * uniqueWordList, char * word, size_t si
 }
 
 
-void printReport(struct UniqueWord * uniqueWordList, size_t size, char * buffer, size_t wordListSize){
+void printReport(struct UniqueWord * uniqueWordList, size_t size, char * buffer, size_t wordListSize,
+        size_t bufferSize){
     printf("%-10s%-10s%-10s%-s\n", "BEGIN", "LENGTH", "COUNT", "WORD");
 
     for(int i = 0; i < size; i++){
-        printf("%-10d%-10d%-10d%-s\n", uniqueWordList[i].begin, (int) strlen(uniqueWordList[i].word), uniqueWordList[i].count,
-                uniqueWordList[i].word);
+        printf("%-10d%-10d%-10d", uniqueWordList[i].begin, (int) strlen(uniqueWordList[i].word),
+                uniqueWordList[i].count);
+        printString(uniqueWordList[i].word);
+        printf("\n");
     }
 
-    printf("Total processed bytes: %lu\n", strlen(buffer));
+    printf("Total bytes processed: %lu\n", bufferSize);
     printf("Total Unique Words: %lu\n", size);
     printf("Total words found: %lu\n", wordListSize);
+}
+
+//Prints a given string to stdout, but replaces the esc character (27) with the null byte
+void printString(char * word){
+    int i = 0;
+    while(word[i] != 0){
+        if(word[i] != 27){
+            printf("%c", word[i]);
+        }
+        else{
+            printf("%c", '\0');
+        }
+
+        i++;
+    }
 }
