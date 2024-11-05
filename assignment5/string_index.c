@@ -23,6 +23,9 @@ size_t findAllWords(char *, char **);
 int countUniqueWords(char **, size_t);
 int indexOf(char **, char *, size_t);
 void fillUniqueWords(char **, char **, size_t);
+int count(char **, char *, size_t);
+int indexOfBuffer(char *, char *);
+void printReport(char *, char **, char **, size_t, size_t);
 
 
 int main(void){
@@ -30,8 +33,6 @@ int main(void){
 
     getBuffer(buffer);
 
-    printf("Buffer = %s\n", buffer);
-    
     char *** indexArr = malloc(8 * sizeof(char **));
     for(int i = 0; i < 8; i++){
         indexArr[i] = malloc(4 * sizeof(char *));
@@ -40,26 +41,14 @@ int main(void){
     char ** wordsArr = malloc(1024 * sizeof(char *));
 
     size_t wordsSize = findAllWords(buffer, wordsArr);
-    printf("words = %lu\n", wordsSize);
-    
-    for(int i = 0; i < wordsSize; i++){
-        printf("%s, ", wordsArr[i]);
-    }
-
-    printf("\n");
 
     int uniqueCount = countUniqueWords(wordsArr, wordsSize);
 
-    printf("Unique words = %d\n", uniqueCount);
     
     char ** uniqueWordsArr = malloc(uniqueCount * sizeof(char *));
     fillUniqueWords(wordsArr, uniqueWordsArr, wordsSize);
     
-    for(int i = 0; i < uniqueCount; i++){
-        printf("%s, ", uniqueWordsArr[i]);
-    }
-
-    printf("\n");
+    printReport(buffer, uniqueWordsArr, wordsArr, uniqueCount, wordsSize);
 }
 
 /*
@@ -83,9 +72,6 @@ void getBuffer(char * buffer){
 
         i++;
     }
-
-    printf("\nDone filling\n");
-    printf("Buffer Length = %d\n", i);
 } 
 
 /*
@@ -167,5 +153,40 @@ void fillUniqueWords(char ** wordsArr, char ** uniqueWordsArr, size_t size){
             strcpy(uniqueWordsArr[uniqueCount], wordsArr[i]);
             uniqueCount++;
         }
+    }
+}
+
+//This function will return the number of times the given word appears in the array
+int count(char ** wordsArr, char * word, size_t size){
+    int count = 0;
+
+    for(int i = 0; i < size; i++){
+        if(strcmp(wordsArr[i], word) == 0){
+            count++;
+        }
+    }
+
+    return count;
+}
+
+//This function will return the index of the first occurance of word in buffer
+int indexOfBuffer(char * buffer, char * word){
+    char * found = strstr(buffer, word);
+
+    if(found != NULL){
+        return found - buffer;
+    }
+
+    return -1;
+}
+
+
+void printReport(char * buffer, char ** uniqueWords, char ** wordsArr, size_t uniqueSize, size_t wordsSize){
+    printf("%-10s%-10s%-10s%-s\n", "BEGIN", "LENGTH", "COUNT", "WORD");
+
+    for(int i = 0; i < uniqueSize; i++){
+        char * word = uniqueWords[i];
+        printf("%-10d%-10d%-10d%-s\n", indexOfBuffer(buffer, word), (int) strlen(word), count(wordsArr, word, wordsSize), 
+                word);
     }
 }
