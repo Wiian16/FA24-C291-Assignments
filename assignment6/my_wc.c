@@ -17,6 +17,7 @@
 
 void parseArgs(int, char **);
 void printHelp();
+void debugLog(char *);
 
 
 bool lineCount = false;
@@ -38,6 +39,8 @@ int main(int argc, char ** argv){
     printf("debug: %d\n", debug);
     printf("averageCharCount: %d\n", averageCharCount);
     printf("excludePunct: %d\n", excludePunct);
+
+    debugLog("Debug log test");
 }
 
 
@@ -126,4 +129,11 @@ void printHelp(){
     printf("  my_wc -v < sample.txt     # Report line, word, character count, and word frequency\n");
     printf("  my_wc -f -d < sample.txt  # Report word frequency with debugging output\n");
     exit(0);
+}
+
+
+void debugLog(char * msg){
+    if(debug){
+        fprintf(stderr, "DEBUG    %s\n", msg);
+    }
 }
