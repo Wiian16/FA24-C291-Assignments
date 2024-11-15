@@ -20,6 +20,12 @@ void printHelp();
 void debugLog(char *);
 
 
+struct inputBuffer {
+    size_t size;
+    char * buffer;
+};
+
+
 bool lineCount = false;
 bool characterCount = false;
 bool wordCount = false;
@@ -41,6 +47,8 @@ int main(int argc, char ** argv){
     printf("excludePunct: %d\n", excludePunct);
 
     debugLog("Debug log test");
+
+    
 }
 
 
