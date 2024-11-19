@@ -43,6 +43,7 @@ struct word {
 
 struct wordList {
     size_t length;
+    size_t wordCount;
     struct word * list;
 };
 
@@ -223,13 +224,7 @@ void report(struct inputBuffer buf) {
     struct wordList list = fillWordList(buf);
 
     if(wordCount){ // todo: add total word count to wordList
-        int words = 0;
-
-        for(int i = 0; i < list.length; i++){
-            words += list.list[i].count;
-        } 
-
-        printf("word count : %d\n", words);
+        printf("word count : %lu\n", list.wordCount);
     }
 }
 
@@ -239,6 +234,7 @@ struct wordList fillWordList(struct inputBuffer buf){
 
     struct wordList list;
     list.length = 0;
+    list.wordCount = 0;
     list.list = (struct word *) calloc(DEFAULT_WORD_LIST_SIZE, sizeof(struct word));
 
     char * token = strtok(buf.buffer, delim);
@@ -258,6 +254,8 @@ struct wordList fillWordList(struct inputBuffer buf){
             list.list[list.length] = newWord;
             list.length++;
         }
+
+        list.wordCount++;
 
         token = strtok(NULL, delim);
     }
