@@ -27,6 +27,7 @@ struct inputBuffer resize(struct inputBuffer);
 void report(struct inputBuffer);
 struct wordList fillWordList(struct inputBuffer);
 int indexOf(struct wordList, char *);
+struct wordList resizeWordList(struct wordList);
 
 
 struct inputBuffer {
@@ -43,6 +44,7 @@ struct word {
 
 struct wordList {
     size_t length;
+    size_t maxLength;
     size_t wordCount;
     struct word * list;
 };
@@ -195,6 +197,8 @@ struct inputBuffer fillBuffer(){
 
 
 struct inputBuffer resize(struct inputBuffer buf){
+    debugLog("Resizing buffer from %lu to %lu", buf.maxSize, buf.maxSize + DEFAULT_BUFFER_SIZE);
+
     char * newBuffer = realloc(buf.buffer, buf.maxSize + DEFAULT_BUFFER_SIZE);
 
     for(int i = buf.size; i < buf.maxSize + DEFAULT_BUFFER_SIZE; i++){
@@ -209,6 +213,7 @@ struct inputBuffer resize(struct inputBuffer buf){
 
 
 void report(struct inputBuffer buf) {
+
     if(lineCount){
         int lines = 0;
 
@@ -226,6 +231,10 @@ void report(struct inputBuffer buf) {
     if(wordCount){ // todo: add total word count to wordList
         printf("word count : %lu\n", list.wordCount);
     }
+
+    if(characterCount){
+        printf("character count : %lu\n", buf.size);
+    }
 }
 
 
@@ -234,6 +243,7 @@ struct wordList fillWordList(struct inputBuffer buf){
 
     struct wordList list;
     list.length = 0;
+    list.maxLength = DEFAULT_WORD_LIST_SIZE;
     list.wordCount = 0;
     list.list = (struct word *) calloc(DEFAULT_WORD_LIST_SIZE, sizeof(struct word));
 
@@ -253,6 +263,10 @@ struct wordList fillWordList(struct inputBuffer buf){
 
             list.list[list.length] = newWord;
             list.length++;
+
+            if(list.length == list.maxLength){
+                list = resizeWordList(list);
+            }
         }
 
         list.wordCount++;
@@ -277,4 +291,16 @@ int indexOf(struct wordList list, char * str){
     }
 
     return index;
+}
+
+
+struct wordList resizeWordList(struct wordList list){
+    debugLog("Resizing wordList from size %lu to %lu", list.length, list.length + DEFAULT_WORD_LIST_SIZE);
+
+    struct word * newList = realloc(list.list, list.length + DEFAULT_WORD_LIST_SIZE * sizeof(struct word));
+
+    list.list = newList;
+    list.maxLength += DEFAULT_WORD_LIST_SIZE;
+
+    return list;
 }
