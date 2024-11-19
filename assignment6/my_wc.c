@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define LINE_COUNT 'l'
 #define CHARACTER_COUNT 'c'
@@ -20,7 +21,7 @@
 
 void parseArgs(int, char **);
 void printHelp();
-void debugLog(char *);
+void debugLog(char *, ...);
 struct inputBuffer fillBuffer();
 struct inputBuffer resize(struct inputBuffer);
 void report(struct inputBuffer);
@@ -83,42 +84,33 @@ void parseArgs(int argc, char ** argv){
             for(int j = 0; j < len; j++){
                 switch (argument[j]){
                     case LINE_COUNT:
-                        printf("Line Count\n");
                         lineCount = true;
                         break;
                     case CHARACTER_COUNT: 
-                        printf("Character Count\n");
                         characterCount = true;
                         break;
                     case WORD_COUNT: 
-                        printf("Word Count\n");
                         wordCount = true;
                         break;
                     case FREQUENCY:
-                        printf("Word Frequency\n");
                         frequency = true;
                         break;
                     case VERBOSE:
-                        printf("Verbose\n");
                         lineCount = true;
                         characterCount = true;
                         wordCount = true;
                         frequency = true;
                         break;
                     case HELP: 
-                        printf("Help\n");
                         printHelp();
                         break;
                     case DEBUG:
-                        printf("Debug\n");
                         debug = true;
                         break;
                     case AVERAGE_CHARACTER_COUNT: 
-                        printf("Average Character Count\n");
                         averageCharCount = true;
                         break;
                     case EXCLUDE_PUNCTUATION: 
-                        printf("Exclude Punctuation\n");
                         excludePunct = true;
                         break;
                     default:
@@ -163,14 +155,21 @@ void printHelp(){
 }
 
 
-void debugLog(char * msg){
+void debugLog(char * msg, ...){
+    va_list args;
+    va_start(args, msg);
+
     if(debug){
-        fprintf(stderr, "DEBUG    %s\n", msg);
+        fprintf(stderr, "DEBUG    ");
+        vfprintf(stderr, msg, args);
+        fprintf(stderr, "\n");
     }
 }
 
 
 struct inputBuffer fillBuffer(){
+    debugLog("Starting buffer fill");
+
     struct inputBuffer buf;
     buf.buffer = (char *) calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
     buf.size = 0;
@@ -187,6 +186,8 @@ struct inputBuffer fillBuffer(){
             buf = resize(buf);
         }
     }
+
+    debugLog("Finished buffer fill, final size: %lu", buf.size);
 
     return buf;
 }
@@ -221,7 +222,7 @@ void report(struct inputBuffer buf) {
 
     struct wordList list = fillWordList(buf);
 
-    if(wordCount){
+    if(wordCount){ // todo: add total word count to wordList
         int words = 0;
 
         for(int i = 0; i < list.length; i++){
@@ -261,7 +262,7 @@ struct wordList fillWordList(struct inputBuffer buf){
         token = strtok(NULL, delim);
     }
 
-    debugLog("Done filling word list");
+    debugLog("Finished word list fill, final size: %lu", list.length);
 
     return list;
 } 
