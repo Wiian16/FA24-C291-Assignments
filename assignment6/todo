@@ -1,9 +1,9 @@
 [x] Input buffer 
 [x] Line count
-[ ] Character count
+[x] Character count
 [x] Word count
-[ ] Frequency
-[ ] Debug statements
+[x] Frequency
+[x] Debug statements
 [ ] Average character count per word (extra credit)
 [ ] Exclude punctuation (extra credit)
 [ ] Change report to add to string and print at end

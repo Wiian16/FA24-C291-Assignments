@@ -235,6 +235,13 @@ void report(struct inputBuffer buf) {
     if(characterCount){
         printf("character count : %lu\n", buf.size);
     }
+
+    if(frequency){
+        printf("word frequency : \n");
+        for(int i = 0; i < list.length; i++){
+            printf("\t%s : %lu\n", list.list[i].word, list.list[i].count);
+        }
+    }
 }
 
 
