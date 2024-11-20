@@ -331,11 +331,14 @@ void report(struct inputBuffer buf) {
     }
 
     free(buf.buffer);
+    buf.buffer = NULL;
     free(list.list);
+    list.list = NULL;
 
     printf("%s", report.buffer);
 
     free(report.buffer);
+    report.buffer = NULL;
 }
 
 
