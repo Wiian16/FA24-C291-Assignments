@@ -19,7 +19,7 @@
 #define DEFAULT_WORD_LIST_SIZE 5
 
 
-void parseArgs(int, char **);
+int parseArgs(int, char **);
 void printHelp();
 void debugLog(char *, ...);
 struct inputBuffer fillBuffer();
@@ -28,6 +28,7 @@ void report(struct inputBuffer);
 struct wordList fillWordList(struct inputBuffer);
 int indexOf(struct wordList, char *);
 struct wordList resizeWordList(struct wordList);
+struct inputBuffer concatReport(struct inputBuffer, char *, ...);
 
 
 struct inputBuffer {
@@ -62,17 +63,17 @@ char * delim = " \t\n\r";
 
 
 int main(int argc, char ** argv){
-    parseArgs(argc, argv);
+    if(parseArgs(argc, argv)){
+        return 0;
+    }
 
     struct inputBuffer buf = fillBuffer();
-
-    printf("buf: %s\n", buf.buffer);
 
     report(buf);
 }
 
 
-void parseArgs(int argc, char ** argv){
+int parseArgs(int argc, char ** argv){
     if(argc == 1){
         lineCount = true;
         wordCount = true;
@@ -106,6 +107,7 @@ void parseArgs(int argc, char ** argv){
                         break;
                     case HELP: 
                         printHelp();
+                        return 1;
                         break;
                     case DEBUG:
                         debug = true;
@@ -130,6 +132,8 @@ void parseArgs(int argc, char ** argv){
     if (debug) debugLog("Flag set: Debug");
     if (averageCharCount) debugLog("Flag set: Average character count");
     if (excludePunct) debugLog("Flag set: Exclude punctuation");
+
+    return 0;
 }
 
 
@@ -154,7 +158,6 @@ void printHelp(){
     printf("  my_wc -l < sample.txt     # Report line count from stdin\n");
     printf("  my_wc -v < sample.txt     # Report line, word, character count, and word frequency\n");
     printf("  my_wc -f -d < sample.txt  # Report word frequency with debugging output\n");
-    exit(0);
 }
 
 
@@ -177,6 +180,11 @@ struct inputBuffer fillBuffer(){
     buf.buffer = (char *) calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
     buf.size = 0;
     buf.maxSize = DEFAULT_BUFFER_SIZE;
+
+    if (!buf.buffer) {
+        fprintf(stderr, "Memory allocation failed for buffer.\n");
+        exit(EXIT_FAILURE);
+    }
 
     while(!feof(stdin)){
         if(!fread(buf.buffer + buf.size, 1, sizeof(char), stdin)){
@@ -201,6 +209,12 @@ struct inputBuffer resize(struct inputBuffer buf){
 
     char * newBuffer = realloc(buf.buffer, buf.maxSize + DEFAULT_BUFFER_SIZE);
 
+    if (!newBuffer) {
+        fprintf(stderr, "Memory reallocation failed.\n");
+        free(buf.buffer);
+        exit(EXIT_FAILURE);
+    }
+
     for(int i = buf.size; i < buf.maxSize + DEFAULT_BUFFER_SIZE; i++){
         newBuffer[i] = 0;
     }
@@ -213,8 +227,14 @@ struct inputBuffer resize(struct inputBuffer buf){
 
 
 void report(struct inputBuffer buf) {
+    struct inputBuffer report;
+    report.maxSize = DEFAULT_BUFFER_SIZE;
+    report.size = 0;
+    report.buffer = calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
 
     if(lineCount){
+        debugLog("Generating line count report");
+
         int lines = 0;
 
         for(int i = 0; i < buf.size; i++){
@@ -223,25 +243,111 @@ void report(struct inputBuffer buf) {
             }
         }
 
-        printf("line count : %d\n", lines);
+        char * format = "lines : %d\n";
+        int length = snprintf(NULL, 0, format, lines) + 1;
+        char * lineReport = malloc(length);
+        sprintf(lineReport, format, lines);
+
+        for(int i = 0; i < strlen(lineReport); i++){
+            report.buffer[report.size] = lineReport[i];
+
+            report.size++;
+
+            if(report.size == report.maxSize){
+                report = resize(report);
+            }
+        }
+
+        free(lineReport);
     } 
 
     struct wordList list = fillWordList(buf);
 
     if(wordCount){ // todo: add total word count to wordList
-        printf("word count : %lu\n", list.wordCount);
+        debugLog("Generating word count report");
+
+        char * format = "word count : %lu\n";
+        int length = snprintf(NULL, 0, format, list.wordCount) + 1;
+        char * wordCountReport = malloc(length);
+        sprintf(wordCountReport, format, list.wordCount);
+
+        for(int i = 0; i < strlen(wordCountReport); i++){
+            report.buffer[report.size] = wordCountReport[i];
+
+            report.size++;
+
+            if(report.size == report.maxSize){
+                report = resize(report);
+            }
+        }
+
+        free(wordCountReport);
     }
 
     if(characterCount){
-        printf("character count : %lu\n", buf.size);
+        debugLog("Generating character count report");
+
+        char * format = "character count : %lu\n";
+        int length = snprintf(NULL, 0, format, buf.size) + 1;
+        char * charCountReport = malloc(length);
+        sprintf(charCountReport, format, buf.size);
+
+        for(int i = 0; i < strlen(charCountReport); i++){
+            report.buffer[report.size] = charCountReport[i];
+
+            report.size++;
+
+            if(report.size == report.maxSize){
+                report = resize(report);
+            }
+        }
+
+        free(charCountReport);
     }
 
     if(frequency){
-        printf("word frequency : \n");
+        debugLog("Generating word frequency count");
+        report = concatReport(report, "word frequency : \n");
         for(int i = 0; i < list.length; i++){
-            printf("\t%s : %lu\n", list.list[i].word, list.list[i].count);
+            report = concatReport(report, "\t%s : %lu\n", list.list[i].word, list.list[i].count);
         }
     }
+
+    if(averageCharCount){
+        debugLog("Buffer: %s", buf.buffer);
+    }
+
+    free(buf.buffer);
+    free(list.list);
+
+    printf("%s", report.buffer);
+
+    free(report.buffer);
+}
+
+
+struct inputBuffer concatReport(struct inputBuffer report, char * fmt, ...){
+    va_list args;
+    va_start(args, fmt);
+
+    va_list argsCopy;
+    va_copy(argsCopy, args);
+    int length = vsnprintf(NULL, 0, fmt, argsCopy) + 1;
+    char * newStr = malloc(length);
+    va_copy(argsCopy, args);
+    vsprintf(newStr, fmt, args);
+
+    for(int i = 0; i < strlen(newStr); i++){
+        report.buffer[report.size] = newStr[i];
+
+        report.size++;
+
+        if(report.size == report.maxSize){
+            report = resize(report);
+        }
+    }
+
+    return report;
 }
 
 
@@ -253,6 +359,11 @@ struct wordList fillWordList(struct inputBuffer buf){
     list.maxLength = DEFAULT_WORD_LIST_SIZE;
     list.wordCount = 0;
     list.list = (struct word *) calloc(DEFAULT_WORD_LIST_SIZE, sizeof(struct word));
+
+    if (!list.list) {
+        fprintf(stderr, "Memory allocation failed for word list.\n");
+        exit(EXIT_FAILURE);
+    }
 
     char * token = strtok(buf.buffer, delim);
 
@@ -267,6 +378,12 @@ struct wordList fillWordList(struct inputBuffer buf){
             newWord.count = 1;
             newWord.length = strlen(token);
             newWord.word = token;
+
+            if (!newWord.word) {
+                fprintf(stderr, "Memory allocation failed for word.\n");
+                free(list.list);
+                exit(EXIT_FAILURE);
+            }
 
             list.list[list.length] = newWord;
             list.length++;
@@ -304,7 +421,7 @@ int indexOf(struct wordList list, char * str){
 struct wordList resizeWordList(struct wordList list){
     debugLog("Resizing wordList from size %lu to %lu", list.length, list.length + DEFAULT_WORD_LIST_SIZE);
 
-    struct word * newList = realloc(list.list, list.length + DEFAULT_WORD_LIST_SIZE * sizeof(struct word));
+    struct word * newList = realloc(list.list, (list.length + DEFAULT_WORD_LIST_SIZE) * sizeof(struct word));
 
     list.list = newList;
     list.maxLength += DEFAULT_WORD_LIST_SIZE;

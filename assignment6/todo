@@ -6,4 +6,4 @@
 [x] Debug statements
 [ ] Average character count per word (extra credit)
 [ ] Exclude punctuation (extra credit)
-[ ] Change report to add to string and print at end
+[x] Change report to add to string and print at end
