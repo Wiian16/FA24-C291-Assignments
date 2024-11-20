@@ -133,6 +133,7 @@ int parseArgs(int argc, char ** argv){
                         break;
                     case EXCLUDE_PUNCTUATION: 
                         excludePunct = true;
+                        delim = " \r\t\n!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
                         break;
                     default:
                         printf("Unknown option: %c\n", argument[j]);
@@ -248,13 +249,29 @@ void report(struct inputBuffer buf) {
     report.size = 0;
     report.buffer = calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
 
+    int totalLineCount = 0;
+    for(int i = 0; i < buf.size; i++){
+        if(buf.buffer[i] == '\n'){
+            totalLineCount++;
+        }
+    }
+
     char * bufferCopy = malloc(strlen(buf.buffer) + 1);
     strcpy(bufferCopy, buf.buffer);
 
     struct wordList list = fillWordList(buf);
 
-    if(wordCount){ // todo: add total word count to wordList
-        debugLog("Generating word count report");
+    if(averageCharCount){
+        debugLog("Generating average report");
+        
+        float avgWordLength = (float) strlen(bufferCopy) / list.wordCount;
+        float avgLineLength = (float) strlen(bufferCopy) / totalLineCount;
+
+        report = concatReport(report, "avg_line_length : %.1f\n", avgLineLength);
+        report = concatReport(report, "avg_word_length : %.1f\n", avgWordLength);
+    }
+
+    if(wordCount){        debugLog("Generating word count report");
 
         char * format = "word_count : %lu\n";
         int length = snprintf(NULL, 0, format, list.wordCount) + 1;
@@ -277,30 +294,7 @@ void report(struct inputBuffer buf) {
     if(lineCount){
         debugLog("Generating line count report");
 
-        int lines = 0;
-
-        for(int i = 0; i < strlen(bufferCopy); i++){
-            if(bufferCopy[i] == '\n'){
-                lines++;
-            }
-        }
-
-        char * format = "line_count : %d\n";
-        int length = snprintf(NULL, 0, format, lines) + 1;
-        char * lineReport = malloc(length);
-        sprintf(lineReport, format, lines);
-
-        for(int i = 0; i < strlen(lineReport); i++){
-            report.buffer[report.size] = lineReport[i];
-
-            report.size++;
-
-            if(report.size == report.maxSize){
-                report = resize(report);
-            }
-        }
-
-        free(lineReport);
+        report = concatReport(report, "line_count : %d\n", totalLineCount);
     } 
 
     if(characterCount){
