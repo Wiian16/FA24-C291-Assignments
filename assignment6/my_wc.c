@@ -1,4 +1,22 @@
-//TODO: block comment
+/*
+Author: Ian McGillivary
+Program Name: my_wc
+
+This program reads input from stdin into a dynamically resizable buffer and produces various reports based on the
+command-line options provided. Reports can include the total number of lines, characters, and words in the input,
+as well as the frequency of each unique word. Additional options allow for detailed verbosity, debugging output,
+and exclusion of punctuation when counting words. The program uses efficient data structures to handle text analysis 
+and ensures memory management for dynamic resizing of buffers and word lists.
+
+Features:
+- Line count, word count, and character count.
+- Frequency analysis for unique words.
+- Support for average character count and excluding punctuation.
+- Debugging mode for internal operation tracing.
+
+Usage instructions and examples are provided when the help option (-h) is specified.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
