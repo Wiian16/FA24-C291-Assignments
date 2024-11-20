@@ -75,9 +75,7 @@ int main(int argc, char ** argv){
 
 int parseArgs(int argc, char ** argv){
     if(argc == 1){
-        lineCount = true;
         wordCount = true;
-        characterCount = true;
     }
 
     for(int i = 1; i < argc; i++){
@@ -232,41 +230,15 @@ void report(struct inputBuffer buf) {
     report.size = 0;
     report.buffer = calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
 
-    if(lineCount){
-        debugLog("Generating line count report");
-
-        int lines = 0;
-
-        for(int i = 0; i < buf.size; i++){
-            if(buf.buffer[i] == '\n'){
-                lines++;
-            }
-        }
-
-        char * format = "lines : %d\n";
-        int length = snprintf(NULL, 0, format, lines) + 1;
-        char * lineReport = malloc(length);
-        sprintf(lineReport, format, lines);
-
-        for(int i = 0; i < strlen(lineReport); i++){
-            report.buffer[report.size] = lineReport[i];
-
-            report.size++;
-
-            if(report.size == report.maxSize){
-                report = resize(report);
-            }
-        }
-
-        free(lineReport);
-    } 
+    char * bufferCopy = malloc(strlen(buf.buffer) + 1);
+    strcpy(bufferCopy, buf.buffer);
 
     struct wordList list = fillWordList(buf);
 
     if(wordCount){ // todo: add total word count to wordList
         debugLog("Generating word count report");
 
-        char * format = "word count : %lu\n";
+        char * format = "word_count : %lu\n";
         int length = snprintf(NULL, 0, format, list.wordCount) + 1;
         char * wordCountReport = malloc(length);
         sprintf(wordCountReport, format, list.wordCount);
@@ -284,10 +256,39 @@ void report(struct inputBuffer buf) {
         free(wordCountReport);
     }
 
+    if(lineCount){
+        debugLog("Generating line count report");
+
+        int lines = 0;
+
+        for(int i = 0; i < strlen(bufferCopy); i++){
+            if(bufferCopy[i] == '\n'){
+                lines++;
+            }
+        }
+
+        char * format = "line_count : %d\n";
+        int length = snprintf(NULL, 0, format, lines) + 1;
+        char * lineReport = malloc(length);
+        sprintf(lineReport, format, lines);
+
+        for(int i = 0; i < strlen(lineReport); i++){
+            report.buffer[report.size] = lineReport[i];
+
+            report.size++;
+
+            if(report.size == report.maxSize){
+                report = resize(report);
+            }
+        }
+
+        free(lineReport);
+    } 
+
     if(characterCount){
         debugLog("Generating character count report");
 
-        char * format = "character count : %lu\n";
+        char * format = "char_count : %lu\n";
         int length = snprintf(NULL, 0, format, buf.size) + 1;
         char * charCountReport = malloc(length);
         sprintf(charCountReport, format, buf.size);
@@ -307,7 +308,7 @@ void report(struct inputBuffer buf) {
 
     if(frequency){
         debugLog("Generating word frequency count");
-        report = concatReport(report, "word frequency : \n");
+        report = concatReport(report, "word_frequency : \n");
         for(int i = 0; i < list.length; i++){
             report = concatReport(report, "\t%s : %lu\n", list.list[i].word, list.list[i].count);
         }
