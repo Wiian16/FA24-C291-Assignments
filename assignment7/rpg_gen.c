@@ -76,6 +76,8 @@ int main(int argc, char ** argv) {
 
     struct Crewman * crew = generateCrew();
 
+    fprintf(stderr, "Generated default crew\n");
+
     parseInput(crew);
 
     free(crew);
@@ -214,6 +216,7 @@ struct Crewman * generateCrew() {
     }
 
     for (int i = 0; i < CREW_MEMBERS; i++) {
+        fprintf(stderr, "Generating crew member %d\n", i);
         crew[i] = generateCrewman(i);
     }
 
@@ -243,6 +246,8 @@ struct Crewman generateCrewman(int serviceNumber) {
     // Gernerate Name
     crewman.name = (char *)malloc(sizeof(char) * 10);
     sprintf(crewman.name, "CREWMAN%d", crewman.serviceNumber);
+
+    crewman.captain = NULL;
 
     return crewman;
 }
@@ -367,6 +372,7 @@ int calculateSkill(int naturalRoll, int ability1, int ability2) {
 }
 
 void printCrew(struct Crewman * crew, FILE * out) {
+    fprintf(stderr, "Sorting crew list\n");
     qsort(crew, CREW_MEMBERS, sizeof(struct Crewman), compareCrewmen);
 
     // output captain, if selected
