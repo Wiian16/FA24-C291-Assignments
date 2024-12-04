@@ -60,13 +60,16 @@ void parseInput(struct Crewman * crew);
 void renameCrewMember(struct Crewman * crew, int serviceNumber, char * name);
 int indexOfCrewMember(struct Crewman * crew, int serviceNumber);
 void setCaptain(struct Crewman * crew, int serviceNumber);
-void setPost(struct Crewman * crew, int serviceNumber, char post);
+void setPost(struct Crewman * crew, int serviceNumber, char * post);
 struct Crewman generateCrewman(int serviceNumber);
+int valueOfCrewman(struct Crewman crewman);
+int compareCrewmen(const void * a, const void * b);
 
 int main(int argc, char ** argv) {
     if (argc == 2) {
         srand(atoi(argv[1]));
-    } else {
+    }
+    else {
         // Initialize random number with time as seed
         srand(time(NULL));
     }
@@ -84,14 +87,15 @@ void parseInput(struct Crewman * crew) {
         printf("\n--- Crew Management Menu ---\n");
         printf("Select an option:\n");
         printf("D: Display the table of crew members\n");
-        printf("N srv_num name: Rename a crew member (e.g., N 123456)\n");
+        printf("N srv_num name: Rename a crew member (e.g., N 123456 John)\n");
         printf("C srv_num: Assign a captain (e.g., C 123456)\n");
-        printf("B srv_num: Assign a bridge post (e.g., B 123456)\n");
+        printf("B srv_num: Assign a bridge post (e.g., B 123456 Nav)\n");
         printf("   Posts:\n");
-        printf("     N - Navigation\n");
-        printf("     C - Communications\n");
-        printf("     S - Security\n");
-        printf("     E - Engineering\n");
+        printf("     Nav - Navigation\n");
+        printf("     Comm - Communications\n");
+        printf("     Sec - Security\n");
+        printf("     Eng - Engineering\n");
+        printf("     Crew - Crewman");
         printf("S: Save the crew list to 'crewmember_list.txt'\n");
         printf("R srv_num: Regenerate a crew member (e.g., R 123456)\n");
         printf("P: Exit the program and start the game\n");
@@ -115,34 +119,25 @@ void parseInput(struct Crewman * crew) {
                 break;
             case 'N':
                 if (strlen(input) < 3) {
-                    printf("\nInvalid Syntax\n");
+                    printf("\nInvalid Syntax: %s\n", buffer);
                     break;
                 }
 
-                serviceNumber = atoi(input);
+                char name[100];
+
+                sscanf(input, "%d %[^\n]", &serviceNumber, name);
 
                 if (indexOfCrewMember(crew, serviceNumber) == -1) {
                     printf("\nService Number %06d does not belong to a crew member\n", serviceNumber);
                     break;
                 }
 
-                printf("\nEnter new name for crew member %06d: ", serviceNumber);
-
-                char name[100];
-
-                if (!fgets(name, 100, stdin)) {
-                    printf("Empty fgets, exiting\n");
-                    exit(1);
-                }
-
-                name[strlen(name) - 1] = '\0';
-
                 renameCrewMember(crew, serviceNumber, name);
 
                 break;
             case 'C':
                 if (strlen(input) < 3) {
-                    printf("\nInvalid Syntax\n");
+                    printf("\nInvalid Syntax: %s\n", buffer);
                     break;
                 }
 
@@ -158,32 +153,21 @@ void parseInput(struct Crewman * crew) {
                 break;
             case 'B':
                 if (strlen(input) < 3) {
-                    printf("\nInvalid Syntax\n");
+                    printf("\nInvalid Syntax: %s\n", buffer);
                     break;
                 }
 
-                serviceNumber = atoi(input);
+                char post[10];
+
+                sscanf(input, "%d %[^\n]", &serviceNumber, post);
 
                 if (indexOfCrewMember(crew, serviceNumber) == -1) {
                     printf("\nService Number %06d does not belong to a crew member\n", serviceNumber);
                     break;
                 }
 
-                printf("Enter a post to assign to crew member %06d: ", serviceNumber);
+                setPost(crew, serviceNumber, post);
 
-                char buffer2[3];
-
-                if (!fgets(buffer2, 3, stdin)) {
-                    printf("Empty fgets, exiting\n");
-                    exit(1);
-                }
-
-                if (strlen(buffer2) != 2) {
-                    printf("\nInvalid input, post must be one character\n");
-                    break;
-                }
-
-                char post = buffer2[0];
                 break;
             case 'S':
                 printf("\nSaving crew list to 'crewmember_list.txt'\n");
@@ -197,7 +181,7 @@ void parseInput(struct Crewman * crew) {
                 break;
             case 'R':  // todo
                 if (strlen(input) < 3) {
-                    printf("\nInvalid Syntax\n");
+                    printf("\nInvalid Syntax: %s\n", buffer);
                     break;
                 }
 
@@ -209,8 +193,8 @@ void parseInput(struct Crewman * crew) {
                     printf("\nService Number %06d does not belong to a crew member\n", serviceNumber);
                     break;
                 }
-                
-                crew[index] = generateCrewman(serviceNumber); 
+
+                crew[index] = generateCrewman(serviceNumber);
 
                 break;
             case 'P':
@@ -273,7 +257,6 @@ enum Rank generateRank() {
     if (rank < 10) {
         return Ens;
     }
-
     if (rank < 12) {
         return Lt;
     }
@@ -376,17 +359,21 @@ int calculateSkill(int naturalRoll, int ability1, int ability2) {
     }
     if (avgAbility == 18) {
         return naturalRoll + 2;
-    } else {
+    }
+    else {
         printf("Abilities outside of normal range, exiting program\n");
         exit(1);
     }
 }
 
 void printCrew(struct Crewman * crew, FILE * out) {
+    qsort(crew, CREW_MEMBERS, sizeof(struct Crewman), compareCrewmen);
+
     // output captain, if selected
     if (crew[0].captain) {
         fprintf(out, "Captain : %s\n", crew[0].captain->name);
-    } else {
+    }
+    else {
         fprintf(out, "Captain : NONE\n");
     }
 
@@ -499,7 +486,7 @@ void setCaptain(struct Crewman * crew, int serviceNumber) {
     crew[index].post = Cap;
 }
 
-void setPost(struct Crewman * crew, int serviceNumber, char post) {
+void setPost(struct Crewman * crew, int serviceNumber, char * post) {
     int index = indexOfCrewMember(crew, serviceNumber);
 
     if (index == -1) {
@@ -508,5 +495,43 @@ void setPost(struct Crewman * crew, int serviceNumber, char post) {
 
     enum Post postEnum;
 
-    switch()
+    if (strcmp(post, "Crew") == 0) {
+        postEnum = Crew;
+    }
+    else if (strcmp(post, "Com") == 0) {
+        postEnum = Com;
+    }
+    else if (strcmp(post, "Nav") == 0) {
+        postEnum = Nav;
+    }
+    else if (strcmp(post, "Eng") == 0) {
+        postEnum = Eng;
+    }
+    else if (strcmp(post, "Sec") == 0) {
+        postEnum = Sec;
+    }
+    else {
+        printf("Ivalid post, aborting\n");
+        return;
+    }
+
+    crew[index].post = postEnum;
+}
+
+int valueOfCrewman(struct Crewman crewman) {
+    switch (crewman.post) {
+        case Cap:
+            return 0;
+        case Nav:
+        case Com:
+        case Eng:
+        case Sec:
+            return 1;
+        case Crew:
+            return 2;
+    }
+}
+
+int compareCrewmen(const void * a, const void * b){
+    return valueOfCrewman(* (struct Crewman *) a) - valueOfCrewman(* (struct Crewman *) b);
 }
