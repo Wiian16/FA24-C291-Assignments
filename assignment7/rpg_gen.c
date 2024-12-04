@@ -3,6 +3,7 @@
 #include <string.h>
 #include <strings.h>
 #include <time.h>
+#include <unistd.h>
 
 // Enums
 enum Race { Terran, Martian, Venusian, Saturian };
@@ -50,8 +51,8 @@ struct Abilities generateAbilities(enum Race race);
 int rollDice(int numDice);
 struct Skills generateSkills(struct Abilities abilities);
 int calculateSkill(int naturalRoll, int ability1, int ability2);
-void printCrew(struct Crewman * crew);
-void printCrewman(struct Crewman crewman);
+void printCrew(struct Crewman * crew, FILE * out);
+void printCrewman(struct Crewman crewman, FILE * out);
 char getRaceChar(enum Race race);
 char * getRankStr(enum Rank rank);
 char * getPostStr(enum Post post);
@@ -60,10 +61,10 @@ void renameCrewMember(struct Crewman * crew, int serviceNumber, char * name);
 int indexOfCrewMember(struct Crewman * crew, int serviceNumber);
 void setCaptain(struct Crewman * crew, int serviceNumber);
 void setPost(struct Crewman * crew, int serviceNumber, char post);
+struct Crewman generateCrewman(int serviceNumber);
 
 int main(int argc, char ** argv) {
     if (argc == 2) {
-        printf("using given seed\n");
         srand(atoi(argv[1]));
     } else {
         // Initialize random number with time as seed
@@ -83,7 +84,7 @@ void parseInput(struct Crewman * crew) {
         printf("\n--- Crew Management Menu ---\n");
         printf("Select an option:\n");
         printf("D: Display the table of crew members\n");
-        printf("N srv_num name: Rename a crew member (e.g., N 123456 John)\n");
+        printf("N srv_num name: Rename a crew member (e.g., N 123456)\n");
         printf("C srv_num: Assign a captain (e.g., C 123456)\n");
         printf("B srv_num: Assign a bridge post (e.g., B 123456)\n");
         printf("   Posts:\n");
@@ -109,7 +110,8 @@ void parseInput(struct Crewman * crew) {
 
         switch (choice) {
             case 'D':
-                printCrew(crew);
+                printf("\n");
+                printCrew(crew, stdout);
                 break;
             case 'N':
                 if (strlen(input) < 3) {
@@ -185,11 +187,31 @@ void parseInput(struct Crewman * crew) {
                 break;
             case 'S':
                 printf("\nSaving crew list to 'crewmember_list.txt'\n");
-                // todo
+
+                FILE * file = fopen("crewmember_list.txt", "w");
+
+                printCrew(crew, file);
+
+                fclose(file);
+                file = NULL;
                 break;
             case 'R':  // todo
+                if (strlen(input) < 3) {
+                    printf("\nInvalid Syntax\n");
+                    break;
+                }
+
                 serviceNumber = atoi(input);
-                printf("\nRegenerating Crewman %06d\n", serviceNumber);
+
+                int index = indexOfCrewMember(crew, serviceNumber);
+
+                if (index == -1) {
+                    printf("\nService Number %06d does not belong to a crew member\n", serviceNumber);
+                    break;
+                }
+                
+                crew[index] = generateCrewman(serviceNumber); 
+
                 break;
             case 'P':
                 printf("\nExiting Program, have a good game!\n");
@@ -208,30 +230,37 @@ struct Crewman * generateCrew() {
     }
 
     for (int i = 0; i < CREW_MEMBERS; i++) {
-        // Default 6-digit service number ( serviceNumber < 1000000)
-        crew[i].serviceNumber = i + 1;
-
-        // Default post (Crew)
-        crew[i].post = Crew;
-
-        // Generate Rank
-        crew[i].rank = generateRank();
-
-        // Generate Race
-        crew[i].race = generateRace();
-
-        // Generate Abilities
-        crew[i].abilities = generateAbilities(crew[i].race);
-
-        // Generate Skills
-        crew[i].skills = generateSkills(crew[i].abilities);
-
-        // Gernerate Name
-        crew[i].name = (char *)malloc(sizeof(char) * 10);
-        sprintf(crew[i].name, "CREWMAN%d", crew[i].serviceNumber);
+        crew[i] = generateCrewman(i);
     }
 
     return crew;
+}
+
+struct Crewman generateCrewman(int serviceNumber) {
+    struct Crewman crewman;
+    // Default 6-digit service number ( serviceNumber < 1000000)
+    crewman.serviceNumber = serviceNumber;
+
+    // Default post (Crew)
+    crewman.post = Crew;
+
+    // Generate Rank
+    crewman.rank = generateRank();
+
+    // Generate Race
+    crewman.race = generateRace();
+
+    // Generate Abilities
+    crewman.abilities = generateAbilities(crewman.race);
+
+    // Generate Skills
+    crewman.skills = generateSkills(crewman.abilities);
+
+    // Gernerate Name
+    crewman.name = (char *)malloc(sizeof(char) * 10);
+    sprintf(crewman.name, "CREWMAN%d", crewman.serviceNumber);
+
+    return crewman;
 }
 
 enum Rank generateRank() {
@@ -353,38 +382,38 @@ int calculateSkill(int naturalRoll, int ability1, int ability2) {
     }
 }
 
-void printCrew(struct Crewman * crew) {
+void printCrew(struct Crewman * crew, FILE * out) {
     // output captain, if selected
     if (crew[0].captain) {
-        printf("Captain : %s\n", crew[0].captain->name);
+        fprintf(out, "Captain : %s\n", crew[0].captain->name);
     } else {
-        printf("Captain : NONE\n");
+        fprintf(out, "Captain : NONE\n");
     }
 
     // print table headers
-    printf("                       Skills           Abilities\n");
-    printf("Ser#   Post Rank | N  E  T  L  D  | C  I  S  P  A  | Race Name\n");
+    fprintf(out, "                       Skills           Abilities\n");
+    fprintf(out, "Ser#   Post Rank | N  E  T  L  D  | C  I  S  P  A  | Race Name\n");
 
     // print all crewmen
     for (int i = 0; i < CREW_MEMBERS; i++) {
-        printCrewman(crew[i]);
+        printCrewman(crew[i], out);
     }
 }
 
-void printCrewman(struct Crewman crewman) {
+void printCrewman(struct Crewman crewman, FILE * out) {
     char * post = getPostStr(crewman.post);
     char * rank = getRankStr(crewman.rank);
     char race = getRaceChar(crewman.race);
 
-    printf("%06d %-4s %-4s | ", crewman.serviceNumber, post, rank);
+    fprintf(out, "%06d %-4s %-4s | ", crewman.serviceNumber, post, rank);
     struct Skills skills = crewman.skills;
-    printf("%-2d %-2d %-2d %-2d %-2d | ", skills.navigation, skills.engineering, skills.tacticts, skills.leadership,
-           skills.diplomacy);
+    fprintf(out, "%-2d %-2d %-2d %-2d %-2d | ", skills.navigation, skills.engineering, skills.tacticts,
+            skills.leadership, skills.diplomacy);
     ;
     struct Abilities abilities = crewman.abilities;
-    printf("%-2d %-2d %-2d %-2d %-2d | ", abilities.charisma, abilities.intelligence, abilities.strength,
-           abilities.psionics, abilities.agility);
-    printf("%c    %s\n", race, crewman.name);
+    fprintf(out, "%-2d %-2d %-2d %-2d %-2d | ", abilities.charisma, abilities.intelligence, abilities.strength,
+            abilities.psionics, abilities.agility);
+    fprintf(out, "%c    %s\n", race, crewman.name);
 }
 
 char * getRankStr(enum Rank rank) {
@@ -468,4 +497,16 @@ void setCaptain(struct Crewman * crew, int serviceNumber) {
     }
 
     crew[index].post = Cap;
+}
+
+void setPost(struct Crewman * crew, int serviceNumber, char post) {
+    int index = indexOfCrewMember(crew, serviceNumber);
+
+    if (index == -1) {
+        printf("Crewman %06d not found\n", serviceNumber);
+    }
+
+    enum Post postEnum;
+
+    switch()
 }
