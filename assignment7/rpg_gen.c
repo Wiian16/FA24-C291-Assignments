@@ -60,7 +60,7 @@ void parseInput(struct Crewman * crew);
 void renameCrewMember(struct Crewman * crew, int serviceNumber, char * name);
 int indexOfCrewMember(struct Crewman * crew, int serviceNumber);
 void setCaptain(struct Crewman * crew, int serviceNumber);
-void setPost(struct Crewman * crew, int serviceNumber, char * post);
+void setPost(struct Crewman * crew, int serviceNumber, char post);
 struct Crewman generateCrewman(int serviceNumber);
 int valueOfCrewman(struct Crewman crewman);
 int compareCrewmen(const void * a, const void * b);
@@ -93,11 +93,10 @@ void parseInput(struct Crewman * crew) {
         printf("C srv_num: Assign a captain (e.g., C 123456)\n");
         printf("B srv_num: Assign a bridge post (e.g., B 123456 Nav)\n");
         printf("   Posts:\n");
-        printf("     Nav - Navigation\n");
-        printf("     Comm - Communications\n");
-        printf("     Sec - Security\n");
-        printf("     Eng - Engineering\n");
-        printf("     Crew - Crewman");
+        printf("     N - Navigation\n");
+        printf("     C - Communications\n");
+        printf("     S - Security\n");
+        printf("     E - Engineering\n");
         printf("S: Save the crew list to 'crewmember_list.txt'\n");
         printf("R srv_num: Regenerate a crew member (e.g., R 123456)\n");
         printf("P: Exit the program and start the game\n");
@@ -109,6 +108,8 @@ void parseInput(struct Crewman * crew) {
             printf("Empty fgets, exiting\n");
             exit(1);
         }
+
+        printf("Buffer: %s\n", buffer);
 
         char choice = buffer[0];
         char * input = buffer + 1;
@@ -134,6 +135,7 @@ void parseInput(struct Crewman * crew) {
                     break;
                 }
 
+                fprintf(stderr, "Renaming crew member %06d to %s\n", serviceNumber, name);
                 renameCrewMember(crew, serviceNumber, name);
 
                 break;
@@ -150,6 +152,7 @@ void parseInput(struct Crewman * crew) {
                     break;
                 }
 
+                fprintf(stderr, "Assigning crew member %06d to captain\n", serviceNumber);
                 setCaptain(crew, serviceNumber);
 
                 break;
@@ -159,15 +162,16 @@ void parseInput(struct Crewman * crew) {
                     break;
                 }
 
-                char post[10];
+                char post;
 
-                sscanf(input, "%d %[^\n]", &serviceNumber, post);
+                sscanf(input, "%d %c", &serviceNumber, &post);
 
                 if (indexOfCrewMember(crew, serviceNumber) == -1) {
                     printf("\nService Number %06d does not belong to a crew member\n", serviceNumber);
                     break;
                 }
 
+                fprintf(stderr, "Assigning crew member %06d to post %c\n", serviceNumber, post);
                 setPost(crew, serviceNumber, post);
 
                 break;
@@ -196,6 +200,7 @@ void parseInput(struct Crewman * crew) {
                     break;
                 }
 
+                fprintf(stderr, "Regenerating crew member %06d\n", serviceNumber);
                 crew[index] = generateCrewman(serviceNumber);
 
                 break;
@@ -317,6 +322,7 @@ struct Abilities generateAbilities(enum Race race) {
             abilities.intelligence += 2;
             abilities.strength--;
             abilities.psionics++;
+            break;
         default:
             break;
     }
@@ -460,7 +466,8 @@ void renameCrewMember(struct Crewman * crew, int serviceNumber, char * name) {
         return;
     }
 
-    crew[index].name = name;
+    free(crew[index].name);
+    crew[index].name = strdup(name);
 }
 
 int indexOfCrewMember(struct Crewman * crew, int serviceNumber) {
@@ -492,7 +499,7 @@ void setCaptain(struct Crewman * crew, int serviceNumber) {
     crew[index].post = Cap;
 }
 
-void setPost(struct Crewman * crew, int serviceNumber, char * post) {
+void setPost(struct Crewman * crew, int serviceNumber, char post) {
     int index = indexOfCrewMember(crew, serviceNumber);
 
     if (index == -1) {
@@ -501,19 +508,16 @@ void setPost(struct Crewman * crew, int serviceNumber, char * post) {
 
     enum Post postEnum;
 
-    if (strcmp(post, "Crew") == 0) {
-        postEnum = Crew;
-    }
-    else if (strcmp(post, "Com") == 0) {
+    if (post == 'C') {
         postEnum = Com;
     }
-    else if (strcmp(post, "Nav") == 0) {
+    else if (post == 'N') {
         postEnum = Nav;
     }
-    else if (strcmp(post, "Eng") == 0) {
+    else if (post == 'E') {
         postEnum = Eng;
     }
-    else if (strcmp(post, "Sec") == 0) {
+    else if (post == 'S') {
         postEnum = Sec;
     }
     else {
