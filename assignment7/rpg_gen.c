@@ -76,6 +76,8 @@ int main(int argc, char ** argv) {
 
     struct Crewman * crew = generateCrew();
 
+    printCrew(crew, stdout);
+
     fprintf(stderr, "Generated default crew\n");
 
     parseInput(crew);
@@ -379,8 +381,15 @@ int calculateSkill(int naturalRoll, int ability1, int ability2) {
 
 void printCrew(struct Crewman * crew, FILE * out) {
     fprintf(stderr, "Sorting crew list\n");
-    qsort(crew, CREW_MEMBERS, sizeof(struct Crewman), compareCrewmen);
 
+    if (crew[0].captain) {
+        int captainServNum = crew[0].captain->serviceNumber;
+        qsort(crew, CREW_MEMBERS, sizeof(struct Crewman), compareCrewmen);
+        setCaptain(crew, captainServNum);
+    }
+    else {
+        qsort(crew, CREW_MEMBERS, sizeof(struct Crewman), compareCrewmen);
+    }
     // output captain, if selected
     if (crew[0].captain) {
         fprintf(out, "Captain : %s\n", crew[0].captain->name);
@@ -473,6 +482,7 @@ void renameCrewMember(struct Crewman * crew, int serviceNumber, char * name) {
 int indexOfCrewMember(struct Crewman * crew, int serviceNumber) {
     for (int i = 0; i < CREW_MEMBERS; i++) {
         if (crew[i].serviceNumber == serviceNumber) {
+            fprintf(stderr, "Found crew member %06d at index %d\n", serviceNumber, i);
             return i;
         }
     }
@@ -542,6 +552,6 @@ int valueOfCrewman(struct Crewman crewman) {
     }
 }
 
-int compareCrewmen(const void * a, const void * b){
-    return valueOfCrewman(* (struct Crewman *) a) - valueOfCrewman(* (struct Crewman *) b);
+int compareCrewmen(const void * a, const void * b) {
+    return valueOfCrewman(*(struct Crewman *)a) - valueOfCrewman(*(struct Crewman *)b);
 }
